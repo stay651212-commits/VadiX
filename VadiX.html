@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VadiX | Premium Canlı Yayın & Dizi Platformu</title>
+    <link rel="icon" type="image/png" href="logo.jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================================================
+           VADİX ÖZEL RENK PALETİ VE ANA TASARIM DEĞİŞKENLERİ
+           Bu bölüm, sitenin genel tema renklerini belirler. 
+           Değiştirmek istersen sadece buradaki HEX kodlarını güncellemen yeterlidir.
+           ========================================================================== */
+        :root {
+            --arkaplan: #050508; /* En arka plan için derin siyah tonu */
+            --kart-bg: #111116;  /* İçerik kartları için koyu gri ton */
+            --vurgu-renk: #8A2BE2; /* Senin sevdiğin Mor (Primary Accent) */
+            --vurgu-neon: #39FF14; /* Senin sevdiğin Neon Yeşil (Secondary Accent) */
+            --yazi: #ffffff;       /* Ana metin rengi (Beyaz) */
+            --yazi-soluk: #a0a0a0; /* Alt metinler ve açıklamalar için soluk gri */
+        }
+
+        /* GENEL GÖVDE (BODY) AYARLARI */
+        body {
+            background-color: var(--arkaplan);
+            color: var(--yazi);
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Yatayda istenmeyen taşmaları engeller */
+        }
+
+        /* ==========================================================================
+           ÖZEL KAYDIRMA ÇUBUĞU (SCROLLBAR) TASARIMI
+           Tarayıcının varsayılan çirkin kaydırma çubuğunu VadiX temasına uydurur.
+           ========================================================================== */
+        ::-webkit-scrollbar { 
+            width: 8px; 
+            height: 8px; 
+        }
+        ::-webkit-scrollbar-track { 
+            background: var(--arkaplan); 
+        }
+        ::-webkit-scrollbar-thumb { 
+            background: var(--vurgu-renk); 
+            border-radius: 10px; 
+        }
+
+        /* ==========================================================================
+           ÜST MENÜ (NAVBAR) VE LOGO TASARIMI
+           Sayfanın en üstünde sabit duran, kaydırdıkça arka planı bulanıklaşan menü.
+           ========================================================================== */
+        header {
+            background: linear-gradient(to bottom, rgba(5,5,8,1) 0%, rgba(5,5,8,0) 100%);
+            padding: 20px 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        /* Kaydırma animasyonu aktif olduğunda devreye giren sınıf */
+        header.scrolled {
+            background: rgba(5, 5, 8, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(138, 43, 226, 0.3);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .logo span { 
+            color: var(--vurgu-neon); 
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5); 
+        }
+
+        .nav-menu { 
+            display: flex; 
+            gap: 25px; 
+        }
+        
+        .nav-menu button {
+            background: transparent;
+            color: var(--yazi-soluk);
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+        
+        .nav-menu button:hover, .nav-menu button.aktif { 
+            color: white; 
+            font-weight: 700; 
+        }
+
+        .nav-menu button.aktif::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--vurgu-renk);
+            box-shadow: 0 0 10px var(--vurgu-renk);
+        }
+
+        /* ==========================================================================
+           VİDEO OYNATICI (SİNEMA EKRANI) - HİBRİT SİSTEM
+           Direkt açılan, aracı buton barındırmayan net tasarım.
+           ========================================================================== */
+        .player-wrapper {
+            margin-top: 130px;
+            width: 100%;
+            height: 70vh;
+            background: #000;
+            display: none;
+            position: relative;
+            border-bottom: 2px solid var(--vurgu-renk);
+            box-shadow: 0 15px 50px rgba(138, 43, 226, 0.15);
+            animation: asagiAcil 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes asagiAcil { 
+            from { opacity: 0; transform: scale(0.95); } 
+            to { opacity: 1; transform: scale(1); } 
+        }
+        
+        /* Iframe ve Video elementlerinin genel ayarı */
+        .player-wrapper iframe, .player-wrapper video { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+        }
+
+        .btn-oynatici-kapat {
+            position: absolute;
+            top: -45px;
+            right: 5%;
+            background: var(--vurgu-renk);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1001;
+        }
+        /* Yeni Tam Ekran butonu stili */
+        .btn-tam-ekran {
+            position: absolute;
+            top: -45px;
+            right: calc(5% + 120px); /* Kapat butonunun soluna konumlandır */
+            background: rgba(255,255,255,0.1); /* Hafif şeffaf bir arka plan */
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1001;
+            transition: background 0.3s;
+        }
+        .btn-tam-ekran:hover {
+            background: var(--vurgu-neon); /* Hover durumunda neon yeşil */
+            color: black;
+        }
+
+
+
+        /* ==========================================================================
+           İÇERİK BÖLÜMÜ VE KATEGORİ BAŞLIKLARI
+           ========================================================================== */
+        main { 
+            padding: 100px 5% 50px 5%; 
+            min-height: 75vh; 
+        }
+
+        .kategori-baslik {
+            font-size: 24px;
+            color: white;
+            margin: 50px 0 25px 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .kategori-baslik::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 24px;
+            background: var(--vurgu-neon);
+            border-radius: 4px;
+            box-shadow: 0 0 10px var(--vurgu-neon);
+        }
+
+        /* ==========================================================================
+           YENİ AŞAĞI DOĞRU IZGARA (GRID) SİSTEMİ
+           Yana kaydırma iptal edildi, Netflix stili aşağı doğru açılan sistem eklendi.
+           ========================================================================== */
+        .grid-satir {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding-bottom: 20px;
+        }
+
+        /* ==========================================================================
+           VADİX PREMİUM KART TASARIMI
+           İçeriklerin sergilendiği resimli kutular.
+           ========================================================================== */
+        .film-kart {
+            width: 100%;
+            height: 180px;
+            border-radius: 12px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+        }
+
+        .film-kart:hover {
+            transform: scale(1.04) translateY(-5px);
+            z-index: 10;
+            border-color: var(--vurgu-renk);
+            box-shadow: 0 15px 30px rgba(138, 43, 226, 0.4);
+        }
+
+        .kart-golge {
+            position: absolute;
+            bottom: 0; 
+            width: 100%; 
+            height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 18px;
+            box-sizing: border-box;
+            border-radius: 12px;
+        }
+
+        .kart-baslik { 
+            color: white; 
+            font-size: 17px; 
+            font-weight: 700; 
+            margin: 0 0 10px 0; 
+        }
+        
+        .etiket-kapsayici { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+        }
+        .kart-etiket {
+            font-size: 11px;
+            font-weight: 700;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        /* Canlı yayınlar için nefes alıp veren özel etiket animasyonu */
+        .etiket-canli { 
+            background: #ff0033; 
+            box-shadow: 0 0 10px #ff0033;
+            animation: nefesAl 2s infinite; 
+        }
+        @keyframes nefesAl { 
+            0% {opacity:1;} 
+            50% {opacity:0.6;} 
+            100% {opacity:1;} 
+        }
+
+        /* ==========================================================================
+           BİLGİ PENCERESİ (MODAL) VE DETAY EKRANI
+           Tıklanan içeriğin detaylarının gösterildiği devasa ekran.
+           ========================================================================== */
+        .modal-bg {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000; 
+            display: none;
+            justify-content: center; 
+            align-items: center;
+            padding: 20px; 
+            box-sizing: border-box;
+        }
+
+        .modal-icerik {
+            background: var(--kart-bg);
+            width: 100%; 
+            max-width: 950px;
+            border-radius: 20px;
+            display: flex; 
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 0 50px rgba(138, 43, 226, 0.3);
+            border: 1px solid #222;
+            max-height: 90vh;
+        }
+
+        .modal-gorsel { 
+            flex: 1; 
+            background-size: cover; 
+            background-position: center; 
+            min-height: 400px; 
+            position: relative; 
+        }
+        .modal-gorsel::after {
+            content: ''; 
+            position: absolute; 
+            top:0; 
+            left:0; 
+            width:100%; 
+            height:100%;
+            background: linear-gradient(to right, transparent 0%, var(--kart-bg) 100%);
+        }
+        
+        .modal-detay { 
+            flex: 1.2; 
+            padding: 50px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            z-index: 2; 
+            overflow-y: auto;
+        }
+        
+        .modal-baslik { 
+            font-size: 36px; 
+            color: white; 
+            margin: 0 0 15px 0; 
+            font-weight: 900; 
+            line-height: 1.1; 
+        }
+        .modal-meta { 
+            font-size: 14px; 
+            color: var(--yazi-soluk); 
+            margin-bottom: 25px; 
+            font-weight: 500; 
+        }
+        .modal-meta span { 
+            color: white; 
+            margin-right: 15px; 
+            font-weight: bold; 
+        }
+        .puan-etiket { 
+            color: var(--vurgu-neon) !important; 
+            text-shadow: 0 0 5px var(--vurgu-neon); 
+        }
+        
+        .modal-ozet { 
+            font-size: 15px; 
+            line-height: 1.8; 
+            margin-bottom: 20px; 
+            color: #d0d0d0; 
+        }
+        
+        /* ==========================================================================
+           ÇOKLU BÖLÜM BUTONLARI (BÖLÜM SEÇİCİSİ)
+           ========================================================================== */
+        .bolum-alani {
+            display: flex; 
+            gap: 10px; 
+            overflow-x: auto; 
+            padding-bottom: 10px; 
+            margin-bottom: 15px;
+        }
+        .bolum-btn {
+            background: rgba(138, 43, 226, 0.2); 
+            color: white; 
+            border: 1px solid var(--vurgu-renk);
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            white-space: nowrap; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
+        .bolum-btn:hover { 
+            background: var(--vurgu-renk); 
+            box-shadow: 0 0 15px var(--vurgu-renk); 
+            transform: translateY(-2px); 
+        }
+
+        .btn-oynat {
+            background: var(--vurgu-renk); 
+            color: white;
+            border: none; 
+            padding: 16px 35px;
+            font-size: 18px; 
+            font-weight: 900;
+            border-radius: 30px; 
+            cursor: pointer;
+            transition: 0.3s; 
+            width: max-content;
+            box-shadow: 0 5px 20px rgba(138, 43, 226, 0.4);
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+        }
+        .btn-oynat:hover { 
+            background: var(--vurgu-neon); 
+            color: black; 
+            box-shadow: 0 5px 20px rgba(57, 255, 20, 0.5); 
+            transform: translateY(-3px); 
+        }
+
+        .btn-kapat {
+            position: absolute; 
+            top: 20px; 
+            right: 25px;
+            background: rgba(255,255,255,0.1); 
+            color: white;
+            border: none; 
+            font-size: 20px;
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%;
+            cursor: pointer; 
+            z-index: 10; 
+            transition: 0.3s;
+        }
+        .btn-kapat:hover { 
+            background: #ff0033; 
+            transform: rotate(90deg); 
+        }
+
+        /* ==========================================================================
+           UYARI KUTUSU (BİLGİLENDİRME PANELİ)
+           ========================================================================== */
+        .hata-uyari {
+            background: rgba(255, 0, 51, 0.1);
+            border-left: 4px solid #ff0033;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #ffcccc;
+            display: none;
+        }
+
+        /* ==========================================================================
+           MOBİL UYUM (RESPONSIVE TASARIM)
+           ========================================================================== */
+        @media (max-width: 850px) {
+            header { padding: 15px 5%; flex-direction: column; gap: 15px; }
+            .nav-menu { width: 100%; justify-content: space-between; overflow-x: auto; padding-bottom: 5px; }
+            .player-wrapper { height: 35vh; margin-top: 110px; }
+            main { padding-top: 130px; }
+            .film-kart { min-width: 100%; height: 200px; }
+            .modal-icerik { flex-direction: column; }
+            .modal-gorsel { min-height: 200px; }
+            .modal-gorsel::after { background: linear-gradient(to bottom, transparent 0%, var(--kart-bg) 100%); }
+            .modal-detay { padding: 30px; }
+            .modal-baslik { font-size: 26px; }
+            .grid-satir { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="siteHeader">
+        <div class="logo" onclick="sayfaYenile()">Vadi<span>X</span></div>
+        <div class="nav-menu">
+            <button class="aktif" onclick="filtrele('hepsi', this)">Tümü</button>
+            <button onclick="filtrele('film', this)">Filmler</button>
+            <button onclick="filtrele('dizi', this)">Diziler</button>
+            <button onclick="filtrele('canli', this)">Canlı Yayınlar</button>
+            <button onclick="filtrele('cizgi', this)">Çizgi Filmler</button>
+        </div>
+    </header>
+
+    <div class="player-wrapper" id="oynaticiKutusu">
+        <button class="btn-oynatici-kapat" onclick="oynaticiKapat()">Kapat ✖</button>
+        
+        <button class="btn-tam-ekran" onclick="toggleFullscreen()">Tam Ekran 📺</button>
+        <iframe id="videoEkrani" src="" allow="autoplay; fullscreen; picture-in-picture; xr-spatial-tracking; encrypted-media; clipboard-write" allowfullscreen style="display:none; border:none;"></iframe>
+        
+        <video id="yerelOynatici" controls autoplay style="display:none; width:100%; height:100%; background:#000;"></video>
+    </div>
+
+    <main id="icerikEkrani"></main>
+
+    <div class="modal-bg" id="modal">
+        <div class="modal-icerik">
+            <button class="btn-kapat" onclick="modalKapat()">✖</button>
+            <div class="modal-gorsel" id="modalResim"></div>
+            <div class="modal-detay">
+                <div class="hata-uyari" id="hataUyari">
+                    <strong>Bilgi:</strong> Eğer oynatıcı "Video Kullanılamıyor" derse, yapımcı kanal dışarıdan izlemeyi kısıtlamış demektir.
+                </div>
+                <h2 class="modal-baslik" id="modalAd">Başlık</h2>
+                <div class="modal-meta">
+                    <span id="modalYil">Yıl</span> | <span id="modalKategori">Kategori</span> | <span class="puan-etiket" id="modalPuan">Sezon</span>
+                </div>
+                <p class="modal-ozet" id="modalOzet">Ozet metni.</p>
+                
+                <div id="bolumKutusu" class="bolum-alani"></div>
+
+                <button class="btn-oynat" id="modalOynatBtn">▶ Hemen İzle</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sayfa kaydırıldıkça menünün arka planını bulanıklaştıran tetikleyici
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 30) document.getElementById('siteHeader').classList.add('scrolled');
+            else document.getElementById('siteHeader').classList.remove('scrolled');
+        });
+
+        // ==========================================================================
+        // VADİX DEV İÇERİK VERİTABANI
+        // Her satır, her virgülden sonra ayrıntılı olarak aşağı inerek 
+        // profesyonel bir liste (JSON array) oluşturulmuştur.
+        // ==========================================================================
+        const veritabani = [
+            
+            /* SİNEMA FİLMLERİ */
+            { 
+                id: "f1", 
+                kat: "film", 
+                tur: "Yerli Film", 
+                baslik: "Eltilerin Savaşı", 
+                ytId: "Opq-mGRiVSQ", 
+                gorsel: "https://i.ytimg.com/vi/Opq-mGRiVSQ/hqdefault.jpg", 
+                ozet: "İki eltinin tatlı ve komik rekabeti.", 
+                yil: "2020", 
+                puan: "Sinema" 
+            },
+            { 
+                id: "f2", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Fall", 
+                ytId: "ulfEckaHV7w", 
+                gorsel: "https://i.ytimg.com/vi/ulfEckaHV7w/hqdefault.jpg", 
+                ozet: "Terk edilmiş yüksek bir kulede mahsur kalan iki kişinin gerilim dolu hikayesi.", 
+                yil: "2022", 
+                puan: "Sinema" 
+            },
+            { 
+                id: "f3", 
+                kat: "film", 
+                tur: "Yerli Film", 
+                baslik: "Hababam Sınıfı Uyanıyor", 
+                ytId: "4rAnNKCxlnc", 
+                gorsel: "https://i.ytimg.com/vi/4rAnNKCxlnc/hqdefault.jpg", 
+                ozet: "", 
+                yil: "", 
+                puan: "Sinema" 
+            },
+            { 
+                id: "f4", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Çıkış Yok - No Way Up", 
+                ytId: "9f6yDUwTebA", 
+                gorsel: "https://i.ytimg.com/vi/9f6yDUwTebA/hqdefault.jpg", 
+                ozet: "", 
+                yil: " 2024", 
+                puan: "Sinema" 
+            },
+             { 
+                id: "f5", 
+                kat: "film", 
+                tur: "Yerli Film", 
+                baslik: "Şaban oğlu şaban", 
+                ytId: "ZDoLID8feBU", 
+                gorsel: "https://i.ytimg.com/vi/ZDoLID8feBU/hqdefault.jpg", 
+                ozet: "Eğlence ve komedi.", 
+                yil: "1997", 
+                puan: "Sinema" 
+            },
+             { 
+                id: "f6", 
+                kat: "film", 
+                tur: "Yerli Film", 
+                baslik: "Tosun paşa", 
+                ytId: "guqpuNWQDhc", 
+                gorsel: "https://i.ytimg.com/vi/guqpuNWQDhc/hqdefault.jpg", 
+                ozet: "Eğlence ve komedi.", 
+                yil: "1976", 
+                puan: "Sinema" 
+            },
+             { 
+                id: "f7", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Buz Kıyameti - 4K Macera ve Bilim Kurgu Filmi", 
+                ytId: "8h7Mb-6ic7g", 
+                gorsel: "https://i.ytimg.com/vi/8h7Mb-6ic7g/hqdefault.jpg", 
+                ozet: "Viral bir salgının sancıları içinde olan devasa bir kutup girdabı, neredeyse tüm Dünya'yı buzla kaplamakla tehdit ediyor. Soğuktan kurtulmanın tek şansının ekvatora yakın 100 millik bir ılıman bölge olduğu keşfedildiğinde, bir virolog, salgının tek çaresinin 24 saat içinde bu güvenli bölgeye ulaşmalıdır.", 
+                yil: " 2020", 
+                puan: "Sinema" 
+            },
+             { 
+                id: "f8", 
+                kat: "film", 
+                tur: "Bilim kurgu", 
+                baslik: "Zombi Ekspresi (Train to Busan) | Türkçe Dublajlı Full Korku Film İzle", 
+                ytId: "Ljwx24OPx9s", 
+                gorsel: "https://i.ytimg.com/vi/Ljwx24OPx9s/hqdefault.jpg", 
+                ozet: "Sok-woo, işinden başını kaşımaya fırsat bulamayan, kızını sürekli ihmal eden bir babadır. Doğum gününde kızının ısrarları üzerine, onu eski eşinin yanına bırakmak için Seul’den kalkıp Busan’a gidecek olan trene biner gönülsüzce. Tren tam kalkmak üzereyken, sıra dışı bir virüsten etkilenen bir kadın, trendekilere virüsü yaymaya başlar. Virüsün bulaştığı herkes, birer birer zombiye dönüşür. Sebebi belirlenemeyen virüs, tüm ülkeye yayılırken, hızla Busan’a yol alan trende de Sok-woo, kızı ve daha birçok yolcu amansız bir hayatta kalma mücadelesine girişir.", 
+                yil: " 2017", 
+                puan: "Sinema" 
+            },
+             { 
+                id: "f9", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Kara Şeytan - Black Demon | Türkçe Dublaj Korku & Bilim Kurgu Filmi 4K İZLE!", 
+                ytId: "jT26_ol_6Gc", 
+                gorsel: "https://i.ytimg.com/vi/jT26_ol_6Gc/hqdefault.jpg", 
+                ozet: " Paul Sturges'in pastoral aile tatili, bölgesini korumak için hiçbir şeyden vazgeçmeyen vahşi bir köpekbalığıyla karşılaştıklarında bir kabusa dönüşür. İnsanlar ve doğa arasındaki bu destansı savaşta, mahsur kalan ve sürekli saldırı altında olan Paul ve ailesi, kıyıya çıkmanın yolunu bulmaya çalışır.", 
+                yil: " 2023", 
+                puan: "Sinema" 
+            },
+            { 
+                id: "f10", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Hypnotic: Zihin Avı | Türkçe Dublaj Aksiyon & Dram Filmi 4K", 
+                ytId: "OCsKu0xyNQQ", 
+                gorsel: "https://i.ytimg.com/vi/OCsKu0xyNQQ/hqdefault.jpg",
+                ozet: "Dedektif Danny Rourke, küçük kızı Minnie kaybolduktan sonra onu bir daha bulamamış ve eşiyle de ayrılmışlardır. Öfkesini ve kızını bulma umudunu hiç kaybetmeyen Danny, görev başındayken bir banka soygunu haberini alır. Bankaya hırsızlardan önce ulaşmayı başaran Danny, kasada kızı Minnie'nin fotoğrafını bulur ve kızını bulmak için elindeki tek ipucunun peşinden gider. Ancak karşısına insanların zihinlerine yön verip tüm algısını yönetebilen hipnotikler çıkar. Onlara karşı bir savaş başlatan Danny, kızını kurtarmak için hipnotikleri yenebilecek midir? ", 
+                yil: " 2023", 
+                puan: "Sinema" 
+            },
+              { 
+                id: "f11", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Uyumsuz | Türkçe Dublaj Bilim Kurgu Filmi", 
+                ytId: "FTZDjaCgn30", 
+                gorsel: "https://i.ytimg.com/an_webp/FTZDjaCgn30/mqdefault_6s.webp?du=3000&sqp=CMikgtAG&rs=AOn4CLDvQhw8nO4nSLb_USRIP45JtCuuYw", 
+                ozet: "Uzak bir gelecekte geçen distopik hikayede insanlık, her biri farklı bir erdemi temsil eden beş farklı parçaya bölünmüş bir düzende yaşamaktadır. İnsanlar 16 yaşına geldiklerinde kendi insani özelliklerine göre bu beş bölümden birine dahil olup ömür boyu bu bölümde yaşamlarını sürdürmektedirler. Tris Prior için de bu kuralı uygulama zamanı geldiğinde kendiyle ilgili büyük bir sırrı keşfeder: Tris, Uyumsuz'dur ve herhangi bir gruba ait olması mümkün değildir. Asıl sorun ise uyumsuzların bir lider tarafından yok edildiği ve bu yüzden hayatını kurtarabilmek için kaçması gerektiği gerçeğiyle yüzleştiği an ortaya çıkar. Tris bu belalı yolculukta hem hayatta kalabilmek hem de kendisi gibi uyumsuzların bu düzende neden bu denli tehlikeli bulunduklarını öğrenebilmek için Four adlı gizemli bir yabancıya güvenmek ve onunla işbirliği yapmak zorunda kalır ", 
+                yil: " 2014", 
+                puan: "Sinema" 
+            },
+            { 
+                id: "f12", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Uyumsuz Serisi:Kuralsız | Türkçe Dublaj Bilim Kurgu Filmi", 
+                ytId: "eEHiC2wIP_8", 
+                gorsel: "https://i.ytimg.com/vi/eEHiC2wIP_8/hqdefault.jpg", 
+                ozet: "Futüristik bir distopyada geçen öyküde, beş farklı fraksiyona bölünen bir toplumun tüm yaşantısını bu hiyerarşik yap üzerine inşa ettiğini izlemiştik. Bu hiyerarşik yapılanmaya karşı çıkan Tris, hem çevresindeki insanları hem de işleyen bu düzeni değiştirecek güce sahip olduğunu keşfetmişti. ", 
+                yil: " 2015", 
+                puan: "Sinema" 
+            },
+               { 
+                id: "f13", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "Uyumsuz Serisi:Yandaş | Türkçe Dublaj Bilim Kurgu Filmi", 
+                ytId: "VxdTFGS0Dk8", 
+                gorsel: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAFMAlAMBIgACEQEDEQH/xAAcAAABBQEBAQAAAAAAAAAAAAAFAAMEBgcCAQj/xAA4EAACAQMDAgQEBAQFBQAAAAABAgMABBEFEiExQQYTUWEicYGRFDKhsUJS0fAHFSMkwTNDYuHx/8QAGQEAAwEBAQAAAAAAAAAAAAAAAgMEAQAF/8QAIBEAAgIDAQEBAAMAAAAAAAAAAAECEQMSITFBIhMyUf/aAAwDAQACEQMRAD8AP+Hlj2kOOD71ZIYrd5BGoKt055FV6yg8qMFDUyF5hLu3YPrmoNGmejNplmhswFxIu0j+Jehp9UWBGmlkSONfzMzYA+dDrXUmiXMzYRRlj6Csj8VeJZtb1ScvK34ZWPkxF+FXPHHrTYQ29J2nZY/Hev6fqus2dtpUK3ksJKyyqQFkU/w7vQevSrp4T/DzQsrbVu41G5M52qen7CsEVp7abfb3DLnJBJBK9zij2gaxc2V3+JS7mMrcsxbJP9+nSmyxDH/TVG+bdoIPUc1llzbHU57+6v4/OmlkOyRnIMKgkD4T6ADjNFpf8RzBpqyNYedcYIZg+FJqnaP4oaz1Q39wFnilBLiPAZAewz3Gc+lLjja8Bxflu0bHZrMul26ySBZxCoL4yN2OvPXmsj8V6NBoeq/iYNQDmdSJZS4dtx6sQOn/ANofrPiJ9auorGRgI5pV3J2jjzhU+37UfOm2t44M+QUxgdsVl6jceJp3Z22lp4jfTrJpEEcTi4nljG0vgFRg/U/celRb6C4sfFV40zwgZjAMoJLRn4UOR3wOflUhfEN1Y6kum6VDBI+P9XzSSsS++Mc9O9V7WNZvpvEZm1NIFlChSVQ7dozgjv61tfBlNTt+F2W3cwNJcJHHNIvIjJwRn9aB60BaRIUKh5H2qX4A9zT2meLLCaZbS5VoEUBI5j+U4GOf5aleKXtWtrf8NIklysvAhYMQpBB6fTrQ6uzNv1QP0iGaHVbT8V5M6FlkyjBgcEEg1qmtrYjS5n1Jd9rtBYDr9KqNlFax2X4m4kihaBQ0jSMqlM/X2qDqvi611Oymt7dLq4RDkyxgEcHnI64pkZUhOSDnL8kzxlbGPRLC105hJZI+WwxZuRkE+gwSftVEihAuYd4aU78bT/ESfWrGkUjRG4i37ZhgupIDex9aHXMZQsowgPBGeCBQudjcca4EbNy1nAWOTs6460qZ0+/SC2CS5JBOMelKljKJdheZ+HPbOPaplzdtbw7sqGY7VJ7H++arWi6pGZjK4KgKE/Lnvkn5U/f3dzqN3GkZjKxZw0YIBJ9vX2oVJ306WML61fNZeFZJWJG6LylY9yf+cZP0rGJbk/iyew756VrWrNPLZW2mXdpvUJuEZHLk8L9ev3rMde046XrV3YOgjkgk2bS3DDAIP1BB+tVYWmIcaOyzeUjcEdc56impLh1AaNsHOKUfmrDtaJXAGODRXwzosmvPqEMCkXEVsZ4wejMpGV+ZB4p7dGcOYHkmgUNJgBh1p6aMqiiVEUsDyvYf3mnrC3u7PS2uJYwsU2FXcR37kfapMUAuYomYLtV9z4XA2jqPrjFJlPgaj0qM8r2moTC6Ta74bGeg7UWi8Q3ciqovZCMYHxcgfPrTGqWqPqs7t8TcDJ9cetMSWCSJ/wBI5HdK3n0JWWDwzOY7yRIWU+ftDEjoBuJ+5Ip7xCA96D3WNQf1P/NO+GLOK1jgcHJdW3ZyCDxjNOa1B5l5dSRq3DtlSOVAP7Um/wBthN/hIrcp296MaNdzx2qSRvuaMlAGGRj5fU0PNn5+8ggBFLsfYHmrBb6clvpEUsLs5kkJyRgdB0onNPgGvLGdeF3q1jIC6BgoKogwOO1O+BQFtzHFcyIzKPMDoCB/MPt9qEXmo3iSPHby+WF6YHP0qY1rPbWCwJK34i4XfOT2B7fbrQSrwOFos/hW4vZRc2llJFNaPMVCS9Np6MKO694fWSBDYIBIPzgt1H9aC+GL1UgWDyxDNHjBXoxx19qt4vI7lAyHnHK+lA2hb2UrKfJol5C2xBFIB35pVZnb4jmlWbIPaRj+mzFfhS6THTCn+tWnTlljyQu3b+Uf0qiwSBGAmgIPvjB+oqw6dqsCqIw7Rf8Ai/P61skU6t+FstNRImn1W7XzDEpKKfRRjt75rIdVu5NYvpr65JM87lmb1q9alfiHRLvyZldvJKY6884rOXOy3G3IPaqMC9ZNlVNWKISRZ2TGP2BP7Vo/+HN7bWeg65qVyd93FCUTsGBHTHzwKzASs3V60bwlpat4VmEoObkluPQdP2pmRpRFJWPT3JXwrYgkHe4UnA6AGuDd/wCWwJEpAPl7nZhkDjgfuftXmrzW9zFpttbBV2sCUBGNuO9CvE0++MjqJCArA8EYpSjYyToEz3lw8rygoykkkcfp7VJtriVwuFAf2oAS8RIcHA6ZFTLWbJ+JVGP5jg0bRyZofhdjJG3nAbhgdMYFNzXJnuvxAbDEtknuO36cUxpswtNFmnC4Z1CKQc5J4/ah9vKZDhWGR8RBPXHep6dht8oM6Vpwla4eQ7YCOW9j1FEr2aIW0dpb8KhLYByB/YFArS/aBmTOFJ+IZopBPbSI/nKfMxwwpbbTsJJVQC/CGRmbHUnJNFYlYs7SuScY3EZ6dP2x9KkWlnGZFMTggnG00S/y8oCGXKno3X6Up5aD1RG0YMs7zunwqvw8/wB+9HLWQjbg8jp7U1p1oBGw9sY+tEILNkI7ilTyN+HUvo+mHXcxwaVSY7f4RSrf0BaMBBuBgHEij05/91wbhn4Kg4PRxuFQIbtgepx86ea6WU4YYYd6uUn4xrUauDHby8cWsibFUEYwMjvQxDvRvRUJ+wrrUZj5Kpuzk560xGxFrPJjggL8s0+HFwiy5dpWxadGJ7qKNj8Jb4vYd61+01nSxZx26v5MaJsCuvGMetZHpLiKZpv5R0+dFYtQjdgVkI55A6fal5U5UHh106TbWVIrtnBCqrHBBxkA11rzxRi1h34Jh8znrzwP0UUKt5Mz7ducvnj0z6VH1u78/UCxJO1Qg+lMXGKvjOpIQ6uVIKqNxbGa6tMvKigIxYgZppLlYdNlTq07qo9lXk/qR9qe0kjzxKVzt4HzrWzky26ncKmkwwIu0xzDaB3AUj9zQeGQ/iEUDktg/wBKdnkA0qSQ4B3qnzOc5/Sh1nMRchzyRmlDXLoUnleK4cFssPy89u1TLa8bCHrnhgagyyRvatKwy24Kpr2z+OF5M4CYA++KXJGqTLKlz5RSRRwTz2o9pl9NI65YqCOjHIqmyzf7dFyPiYUV0uVTESzsqn4RU04KxqlaL/DPH5algvLEce1Ebcxv04+dVKxdk4ycZzVgsJgcc0EabFzDiQ5XgZFKu4GXyxzSqnVE+zPkNZCFwTXQmwOuK4xXoTjNV0gLl/p1M6vIDHnb6nua8kkUwiMA5ByaSR7s4xwMnmm3Hx4Hai+C3ZJtZhFHyGOeeKd8yNlJAAPYiomAAOTn2r1d2RgHr3FDQyMmuE62mZ35ODjr3FQZZS8xZucmpcbeXLuYrz0A9PSof/fY993A+tF9syTdUO3DbdqDI2oOD696nW5KRKV9cn50LkbfKWbnJPNEPMwhQFgexGOaFmwdvpJvJytvFEWz1bA6UzbSlWJzUaZmbYCckCnE2hE29+vzrKDfoSnvcWMNuoAO8uT3PHFSjdpFpUKLkyOctnHTNCHxLeKqcLwB8xU4hTOsYAAHBBGaXJBJkx5nkMCL6Zx/fyousrrJbWwBCjDHPeq9ZnfebgcAdCPailnOWujIDuYDjNIyIfiTZbra73A/Gc1YdPuipGT2qm29yj/mH170XtZgACsmOKlVxYycU0X23vf9IUqrMNzP5Yxkj2BpU7+QlcDDII0ZTlR9qk/h4RESIxmlSr0AGC1H+5x234roKAZOOinH3FKlRCjmAA7ARwWwaIyIsYGxQOPnSpVwSG41DKxbk0ObiZ8e9KlXAyO7IBp0BGRUqHmUk9VyR7UqVYwsfgxOSWznk9ftRSOGM24bYN24c/WlSrAyLbgfE3cMcGnYSf8AWbJyFPOaVKgZw7ZMVjJBwd1TrAkcgnr60qVJmUY34FoXYd6n2kr5/MaVKpfhXL0NwXMwjAEjfelSpVwhpWf/2Q==", 
+                ozet: "Futüristik bir distopyada geçen öyküde, beş farklı fraksiyona bölünen bir toplumun tüm yaşantısını bu hiyerarşik yap üzerine inşa ettiğini izlemiştik. Bu hiyerarşik yapılanmaya karşı çıkan Tris, hem çevresindeki insanları hem de işleyen bu düzeni değiştirecek güce sahip olduğunu keşfetmişti. ", 
+                yil: " 2016", 
+                puan: "Sinema" 
+            },
+            { 
+                id: "f14", 
+                kat: "film", 
+                tur: "Yerli Film", 
+                baslik: "Sakar Şakir Türk Filmi | 4K ULTRA HD | KEMAL SUNAL", 
+                ytId: "2UrB54MgZuQ", 
+                gorsel: "https://i.ytimg.com/vi/2UrB54MgZuQ/hqdefault.jpg", 
+                ozet: "Eğlence ve komedi.", 
+                yil: "1997", 
+                puan: "Sinema" 
+            },
+  { 
+                id: "f15", 
+                kat: "film", 
+                tur: "Yabancı Film", 
+                baslik: "İstila: Zamanın Sonu | Bilim Kurgu Aksiyon", 
+                ytId: "LI_YaoyZtRY", 
+               gorsel: "https://i.ytimg.com/vi/LI_YaoyZtRY/hqdefault.jpg", 
+                ozet: "“İstila: Zamanın Sonu”, 2025 yapımı bilim kurgu – aksiyon filmi olup, insanlığın son umudunu konu alıyor. Devasa uzaylı istilasıyla karşı karşıya kalan dünya, yok olma tehlikesiyle burun buruna gelir. Cesur bir grup asker ve bilim insanı, zamanı bükerek hem geçmişi hem de geleceği kurtarmak için zorlu bir mücadeleye atılır. ", 
+                yil: " 2025", 
+                puan: "Sinema" 
+            },
+
+            /* DİZİ ARŞİVİ (BÖLÜM DESTEKLİ) */
+            { 
+                id: "d1", 
+                kat: "dizi", 
+                tur: "Dizi Serisi", 
+                baslik: "Delikanlı", 
+                gorsel: "https://i.ytimg.com/vi/NNuMARKEeXY/hqdefault.jpg", 
+                ozet: "Kenar mahallede büyüyen Yusuf'un, ailesini ayakta tutmaya çalışırken kaderin onu yeraltı dünyasına sürüklemesi.", 
+                yil: "2026", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/delikanli-sezon-1-bolum-1-izle/131971"}, 
+                    {ad: "2. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/delikanli-sezon-1-bolum-2-izle/132119"}, 
+                    {ad: "3. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/delikanli-sezon-1-bolum-3-izle/132283"}, 
+                    {ad: "4. Bölüm", yt: " https://www.showtv.com.tr/dizi/tum_bolumler/delikanli-sezon-1-bolum-4-izle/132449"}, 
+                    {ad: "5. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/delikanli-sezon-1-bolum-5-izle/132619"},  
+
+                ]
+            },
+            { 
+                id: "d2", 
+                kat: "dizi", 
+                tur: "Dizi Serisi", 
+                baslik: "Yalı Çapkını", 
+                gorsel: "https://i.ytimg.com/vi/N395lbyLJ6E/hqdefault.jpg", 
+                ozet: "Gaziantepli Korhan ailesinin, şımarık torunları Ferit'i evlendirmeye karar vermesiyle başlayan hikaye.", 
+                yil: "2022", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "N395lbyLJ6E"}, 
+                    {ad: "2. Bölüm", yt: "EoIA63mIF-I"}, 
+                    {ad: "3. Bölüm", yt: "mBDsDiJcC14"}, 
+                    {ad: "4. Bölüm", yt: "iqT-TDQ6Fvk"},
+                    {ad: "5. Bölüm", yt: "DguhQw28EHw"}, 
+                    {ad: "6. Bölüm", yt: "pV1tCmOGhLg"}, 
+                    {ad: "7. Bölüm", yt: "sT_TUxbU7PQ"}, 
+                    {ad: "8. Bölüm", yt: "d5M_7_Z3T0U"},
+                    {ad: "9. Bölüm", yt: ""}, 
+                    {ad: "10. Bölüm", yt: "O0U9Nk2w5kw"}, 
+                    {ad: "11. Bölüm", yt: "ifdLrH3XVbI"}, 
+                    {ad: "12. Bölüm", yt: "vMFOvP1V9_E"}, 
+                     {ad: "13. Bölüm", yt: "_iPmgNkTn3g"}, 
+                      {ad: "14. Bölüm", yt: "zfmFfYx0kfg"}, 
+                       {ad: "15. Bölüm", yt: "6LYAmE0dnLM"}, 
+                        {ad: "16. Bölüm", yt: "s12jO6G8_Cc"}, 
+                         {ad: "17. Bölüm", yt: "v395LRZXtEY"},
+
+
+
+
+                ]
+            },
+            { 
+                id: "d3", 
+                kat: "dizi", 
+                tur: "Resmi Dizi", 
+                baslik: "Sevdiğim Sensin", 
+                gorsel: "https://img-puhutv.mncdn.com/mnresize/432/618/media/26-05/07/bolumkapak.jpg", 
+                ozet: "Erkan, Dicle’yi töre cinayetinden korumak için onunla evlenmek zorunda kalır", 
+                yil: "2026", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-1-bolum-izle"},
+                    {ad: "2. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-2-bolum-izle"},
+                    {ad: "3. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-3-bolum-izle"},
+                    {ad: "4. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-4-bolum-izle"},
+                    {ad: "5. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-5-bolum-izle"},
+                    {ad: "6. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-6-bolum-izle"},
+                    {ad: "7. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-7-bolum-izle"},
+                    {ad: "8. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-8-bolum-izle"},
+                    {ad: "9. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-9-bolum-izle"},
+                    {ad: "10. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-10-bolum-izle"},
+                    {ad: "11. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-11-bolum-izle"},
+                    {ad: "12. Bölüm", yt: "https://puhutv.com/sevdigim-sensin-12-bolum-izle"},
+
+                ]
+            },
+            { 
+                id: "d4", 
+                kat: "dizi", 
+                tur: "Dizi Serisi", 
+                baslik: "Ezel", 
+                gorsel: "https://iaatv.tmgrup.com.tr/5332b4/400/225/0/0/1181/665?u=https://iatv.tmgrup.com.tr/2023/08/01/ezel-1690869531644.jpeg", 
+                ozet: "En yakın arkadaşları tarafından ihanete uğrayan Ömer'in, Ezel olarak geri dönüp intikam alması.", 
+                yil: "2009", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://www.atv.com.tr/ezel/1-bolum/izle"}, 
+                    {ad: "2. Bölüm", yt: "https://www.atv.com.tr/ezel/2-bolum/izle"}, 
+                    {ad: "3. Bölüm", yt: "https://www.atv.com.tr/ezel/3-bolum/izle"},
+                    {ad: "4. Bölüm", yt: "https://www.atv.com.tr/ezel/4-bolum/izle"},
+                    {ad: "5. Bölüm", yt: "https://www.atv.com.tr/ezel/5-bolum/izle"},
+                    {ad: "6. Bölüm", yt: "https://www.atv.com.tr/ezel/6-bolum/izle"},
+                    {ad: "7. Bölüm", yt: "https://www.atv.com.tr/ezel/7-bolum/izle"},
+                    {ad: "8. Bölüm", yt: "https://www.atv.com.tr/ezel/8-bolum/izle"},
+                    {ad: "9. Bölüm", yt: "https://www.atv.com.tr/ezel/9-bolum/izle"},
+                    {ad: "10. Bölüm", yt: "https://www.atv.com.tr/ezel/10-bolum/izle"},
+                    {ad: "11. Bölüm", yt: "https://www.atv.com.tr/ezel/11-bolum/izle"},
+                    {ad: "12. Bölüm", yt: "https://www.atv.com.tr/ezel/12-bolum/izle"},
+                    {ad: "13. Bölüm", yt: "https://www.atv.com.tr/ezel/13-bolum/izle"},
+                    {ad: "14. Bölüm", yt: "https://www.atv.com.tr/ezel/14-bolum/izle"},
+                    {ad: "15. Bölüm", yt: "https://www.atv.com.tr/ezel/15-bolum/izle"},
+                    {ad: "16. Bölüm", yt: "https://www.atv.com.tr/ezel/16-bolum/izle"},
+                    {ad: "17. Bölüm", yt: "https://www.atv.com.tr/ezel/17-bolum/izle"},
+                    {ad: "18. Bölüm", yt: "https://www.atv.com.tr/ezel/18-bolum/izle"},
+                    {ad: "19. Bölüm", yt: "https://www.atv.com.tr/ezel/19-bolum/izle"},
+                    {ad: "20. Bölüm", yt: "https://www.atv.com.tr/ezel/20-bolum/izle"},
+                    {ad: "21. Bölüm", yt: "https://www.atv.com.tr/ezel/21-bolum/izle"},
+                    {ad: "22. Bölüm", yt: "https://www.atv.com.tr/ezel/22-bolum/izle"},
+                    {ad: "23. Bölüm", yt: "https://www.atv.com.tr/ezel/23-bolum/izle"},
+                    {ad: "24. Bölüm", yt: "https://www.atv.com.tr/ezel/24-bolum/izle"},
+                    {ad: "25. Bölüm", yt: "https://www.atv.com.tr/ezel/25-bolum/izle"},
+                    {ad: "26. Bölüm", yt: "https://www.atv.com.tr/ezel/26-bolum/izle"},
+                    {ad: "27. Bölüm", yt: "https://www.atv.com.tr/ezel/27-bolum/izle"},
+                    {ad: "28. Bölüm", yt: "https://www.atv.com.tr/ezel/28-bolum/izle"},
+                    {ad: "29. Bölüm", yt: "https://www.atv.com.tr/ezel/29-bolum/izle"},,
+                    {ad: "30. Bölüm", yt: "https://www.atv.com.tr/ezel/30-bolum/izle"},
+                    {ad: "31. Bölüm", yt: "https://www.atv.com.tr/ezel/31-bolum/izle"},
+                    {ad: "32. Bölüm", yt: "https://www.atv.com.tr/ezel/32-bolum/izle"},
+                    {ad: "33. Bölüm", yt: "https://www.atv.com.tr/ezel/33-bolum/izle"},
+                    {ad: "34. Bölüm", yt: "https://www.atv.com.tr/ezel/34-bolum/izle"},
+                    {ad: "35. Bölüm", yt: "https://www.atv.com.tr/ezel/35-bolum/izle"},
+                    {ad: "36. Bölüm", yt: "https://www.atv.com.tr/ezel/36-bolum/izle"},
+                    {ad: "37. Bölüm", yt: "https://www.atv.com.tr/ezel/37-bolum/izle"},
+                    {ad: "38. Bölüm", yt: "https://www.atv.com.tr/ezel/38-bolum/izle"},
+                    {ad: "39. Bölüm", yt: "https://www.atv.com.tr/ezel/39-bolum/izle"},
+                    {ad: "40. Bölüm", yt: "https://www.atv.com.tr/ezel/40-bolum/izle"},
+                    {ad: "41. Bölüm", yt: "https://www.atv.com.tr/ezel/41-bolum/izle"},
+                    {ad: "42. Bölüm", yt: "https://www.atv.com.tr/ezel/42-bolum/izle"},
+                    {ad: "43. Bölüm", yt: "https://www.atv.com.tr/ezel/43-bolum/izle"},
+                    {ad: "44. Bölüm", yt: "https://www.atv.com.tr/ezel/44-bolum/izle"},
+                    {ad: "45. Bölüm", yt: "https://www.atv.com.tr/ezel/45-bolum/izle"},
+                    {ad: "46. Bölüm", yt: "https://www.atv.com.tr/ezel/46-bolum/izle"},
+                    {ad: "47. Bölüm", yt: "https://www.atv.com.tr/ezel/47-bolum/izle"},
+                    {ad: "48. Bölüm", yt: "https://www.atv.com.tr/ezel/48-bolum/izle"},
+                    {ad: "49. Bölüm", yt: "https://www.atv.com.tr/ezel/49-bolum/izle"},
+                    {ad: "50. Bölüm", yt: "https://www.atv.com.tr/ezel/50-bolum/izle"},
+                    {ad: "51. Bölüm", yt: "https://www.atv.com.tr/ezel/51-bolum/izle"},
+                    {ad: "52. Bölüm", yt: "https://www.atv.com.tr/ezel/52-bolum/izle"},
+                    {ad: "53. Bölüm", yt: "https://www.atv.com.tr/ezel/53-bolum/izle"},
+                    {ad: "54. Bölüm", yt: "https://www.atv.com.tr/ezel/54-bolum/izle"},
+                    {ad: "55. Bölüm", yt: "https://www.atv.com.tr/ezel/55-bolum/izle"},
+                    {ad: "56. Bölüm", yt: "https://www.atv.com.tr/ezel/56-bolum/izle"},
+                    {ad: "57. Bölüm", yt: "https://www.atv.com.tr/ezel/57-bolum/izle"},
+                   
+
+
+
+
+
+
+
+
+
+                    
+                    
+
+
+
+                        
+ 
+
+                    
+
+
+
+
+                    
+                ]
+            },
+            { 
+                id: "d5", 
+                kat: "dizi", 
+                tur: "Dizi Serisi", 
+                baslik: "Adanalı", 
+                gorsel: "https://iaatv.tmgrup.com.tr/f458a1/435/287/0/0/435/287?u=https://iatv.tmgrup.com.tr/video/thumbnails/2017/02/22/435x287/1487768359161.jpg", 
+                ozet: "Başarılı ama disiplinsiz davranışları yüzünden İzmir Emniyeti'ne sürülen Adanalı, İstanbul'un en büyük organize suç şebekesini yöneten Maraz Ali'yi yakalaması için İstanbul'daki görevine iade edilir. İstanbul'a gelen Adanalı'yı büyük bir sürpriz beklemektedir. O artık uzun süredir Maraz Ali'nin peşinde olan İdil adlı başkomiserin emrindedir… Bugüne kadar hiçkimsenin alehinde bir delil bulamadığı Maraz Ali ise müthiş bir kumarhane soygunu gerçekleştirir. Onu suçüstü yakalamak isteyen İdil Başkomiser önceden planladığıbir kaza sonucu Maraz Ali ile tanışır ve büyük macera başlar…", 
+                yil: "2008", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://www.atv.com.tr/adanali/1-bolum/izle"}, 
+                    {ad: "2. Bölüm", yt: "https://www.atv.com.tr/adanali/2-bolum/izle"}, 
+                    {ad: "3. Bölüm", yt: "https://www.atv.com.tr/adanali/3-bolum/izle"},
+                    {ad: "4. Bölüm", yt: "https://www.atv.com.tr/adanali/4-bolum/izle"},
+                    {ad: "5. Bölüm", yt: "https://www.atv.com.tr/adanali/5-bolum/izle"},
+                    {ad: "6. Bölüm", yt: "https://www.atv.com.tr/adanali/6-bolum/izle"},
+                    {ad: "7. Bölüm", yt: "https://www.atv.com.tr/adanali/7-bolum/izle"},
+                    {ad: "8. Bölüm", yt: "https://www.atv.com.tr/adanali/8-bolum/izle"},
+                    {ad: "9. Bölüm", yt: "https://www.atv.com.tr/adanali/9-bolum/izle"},
+                    {ad: "10. Bölüm", yt: "https://www.atv.com.tr/adanali/10-bolum/izle"},
+                    {ad: "11. Bölüm", yt: "https://www.atv.com.tr/adanali/11-bolum/izle"},
+                    {ad: "12. Bölüm", yt: "https://www.atv.com.tr/adanali/12-bolum/izle"},
+                    {ad: "13. Bölüm", yt: "https://www.atv.com.tr/adanali/13-bolum/izle"},
+                    {ad: "14. Bölüm", yt: "https://www.atv.com.tr/adanali/14-bolum/izle"},
+                    {ad: "15. Bölüm", yt: "https://www.atv.com.tr/adanali/15-bolum/izle"},
+                    {ad: "16. Bölüm", yt: "https://www.atv.com.tr/adanali/16-bolum/izle"},
+                    {ad: "17. Bölüm", yt: "https://www.atv.com.tr/adanali/17-bolum/izle"},
+                    {ad: "18. Bölüm", yt: "https://www.atv.com.tr/adanali/18-bolum/izle"},
+                    {ad: "19. Bölüm", yt: "https://www.atv.com.tr/adanali/19-bolum/izle"},
+                    {ad: "20. Bölüm", yt: "https://www.atv.com.tr/adanali/20-bolum/izle"},
+                    {ad: "21. Bölüm", yt: "https://www.atv.com.tr/adanali/21-bolum/izle"},
+                    {ad: "22. Bölüm", yt: "https://www.atv.com.tr/adanali/22-bolum/izle"},
+                    {ad: "23. Bölüm", yt: "https://www.atv.com.tr/adanali/23-bolum/izle"},
+                    {ad: "24. Bölüm", yt: "https://www.atv.com.tr/adanali/24-bolum/izle"},
+                    {ad: "25. Bölüm", yt: "https://www.atv.com.tr/adanali/25-bolum/izle"},
+                    {ad: "26. Bölüm", yt: "https://www.atv.com.tr/adanali/26-bolum/izle"},
+                    {ad: "27. Bölüm", yt: "https://www.atv.com.tr/adanali/27-bolum/izle"},
+                    {ad: "28. Bölüm", yt: "https://www.atv.com.tr/adanali/28-bolum/izle"},
+                    {ad: "29. Bölüm", yt: "https://www.atv.com.tr/adanali/29-bolum/izle"},
+                    {ad: "30. Bölüm", yt: "https://www.atv.com.tr/adanali/30-bolum/izle"},
+                    {ad: "31. Bölüm", yt: "https://www.atv.com.tr/adanali/31-bolum/izle"},
+                    {ad: "32. Bölüm", yt: "https://www.atv.com.tr/adanali/32-bolum/izle"},
+                    {ad: "33. Bölüm", yt: "https://www.atv.com.tr/adanali/33-bolum/izle"},
+                    {ad: "34. Bölüm", yt: "https://www.atv.com.tr/adanali/34-bolum/izle"},
+                    {ad: "35. Bölüm", yt: "https://www.atv.com.tr/adanali/35-bolum/izle"},
+                    {ad: "36. Bölüm", yt: "https://www.atv.com.tr/adanali/36-bolum/izle"},
+                    {ad: "37. Bölüm", yt: "https://www.atv.com.tr/adanali/37-bolum/izle"},
+                    {ad: "38. Bölüm", yt: "https://www.atv.com.tr/adanali/38-bolum/izle"},
+                    {ad: "39. Bölüm", yt: "https://www.atv.com.tr/adanali/39-bolum/izle"},
+                    {ad: "40. Bölüm", yt: "https://www.atv.com.tr/adanali/40-bolum/izle"},
+                    {ad: "41. Bölüm", yt: "https://www.atv.com.tr/adanali/41-bolum/izle"},
+                    {ad: "42. Bölüm", yt: "https://www.atv.com.tr/adanali/42-bolum/izle"},
+                    {ad: "43. Bölüm", yt: "https://www.atv.com.tr/adanali/43-bolum/izle"},
+                    {ad: "44. Bölüm", yt: "https://www.atv.com.tr/adanali/44-bolum/izle"},
+                    {ad: "45. Bölüm", yt: "https://www.atv.com.tr/adanali/45-bolum/izle"},
+                    {ad: "46. Bölüm", yt: "https://www.atv.com.tr/adanali/46-bolum/izle"},
+                    {ad: "47. Bölüm", yt: "https://www.atv.com.tr/adanali/47-bolum/izle"},
+                    {ad: "48. Bölüm", yt: "https://www.atv.com.tr/adanali/48-bolum/izle"},
+                    {ad: "49. Bölüm", yt: "https://www.atv.com.tr/adanali/49-bolum/izle"},
+                    {ad: "50. Bölüm", yt: "https://www.atv.com.tr/adanali/50-bolum/izle"},
+                    {ad: "51. Bölüm", yt: "https://www.atv.com.tr/adanali/51-bolum/izle"},
+                    {ad: "52. Bölüm", yt: "https://www.atv.com.tr/adanali/52-bolum/izle"},
+                    {ad: "53. Bölüm", yt: "https://www.atv.com.tr/adanali/53-bolum/izle"},
+                    {ad: "54. Bölüm", yt: "https://www.atv.com.tr/adanali/54-bolum/izle"},
+                    {ad: "55. Bölüm", yt: "https://www.atv.com.tr/adanali/55-bolum/izle"},
+                    {ad: "56. Bölüm", yt: "https://www.atv.com.tr/adanali/56-bolum/izle"},
+                    {ad: "57. Bölüm", yt: "https://www.atv.com.tr/adanali/57-bolum/izle"},
+                    {ad: "58. Bölüm", yt: "https://www.atv.com.tr/adanali/58-bolum/izle"},
+                    {ad: "59. Bölüm", yt: "https://www.atv.com.tr/adanali/59-bolum/izle"},
+                    {ad: "60. Bölüm", yt: "https://www.atv.com.tr/adanali/60-bolum/izle"},
+                    {ad: "61. Bölüm", yt: "https://www.atv.com.tr/adanali/61-bolum/izle"},
+                    {ad: "62. Bölüm", yt: "https://www.atv.com.tr/adanali/62-bolum/izle"},
+                    {ad: "63. Bölüm", yt: "https://www.atv.com.tr/adanali/63-bolum/izle"},
+                    {ad: "64. Bölüm", yt: "https://www.atv.com.tr/adanali/64-bolum/izle"},
+                    {ad: "65. Bölüm", yt: "https://www.atv.com.tr/adanali/65-bolum/izle"},
+                    {ad: "66. Bölüm", yt: "https://www.atv.com.tr/adanali/66-bolum/izle"},
+                    {ad: "67. Bölüm", yt: "https://www.atv.com.tr/adanali/67-bolum/izle"},
+                    {ad: "68. Bölüm", yt: "https://www.atv.com.tr/adanali/68-bolum/izle"},
+                    {ad: "69. Bölüm", yt: "https://www.atv.com.tr/adanali/69-bolum/izle"},
+                    {ad: "70. Bölüm", yt: "https://www.atv.com.tr/adanali/70-bolum/izle"},
+                    {ad: "71. Bölüm", yt: "https://www.atv.com.tr/adanali/71-bolum/izle"},
+                    {ad: "72. Bölüm", yt: "https://www.atv.com.tr/adanali/72-bolum/izle"},
+                    {ad: "73. Bölüm", yt: "https://www.atv.com.tr/adanali/73-bolum/izle"},
+                    {ad: "74. Bölüm", yt: "https://www.atv.com.tr/adanali/74-bolum/izle"},
+                    {ad: "75. Bölüm", yt: "https://www.atv.com.tr/adanali/75-bolum/izle"},
+                    {ad: "76. Bölüm", yt: "https://www.atv.com.tr/adanali/76-bolum/izle"},
+                    {ad: "77. Bölüm", yt: "https://www.atv.com.tr/adanali/77-bolum/izle"},
+                    {ad: "78. Bölüm", yt: "https://www.atv.com.tr/adanali/78-bolum/izle"},
+                    {ad: "79. Bölüm", yt: "https://www.atv.com.tr/adanali/79-bolum/izle"},
+
+
+
+
+
+
+                    
+                                      
+        
+                ]
+            },
+            { 
+                id: "d6", 
+                kat: "dizi", 
+                tur: "Dizi Serisi", 
+                baslik: "Çukur", 
+                gorsel: "https://upload.wikimedia.org/wikipedia/tr/thumb/c/c4/%C3%87ukur.jpg/250px-%C3%87ukur.jpg", 
+                ozet: "İstanbul'un belalı mahallesi Çukur'un kontrolünü elinde tutan Koçovalı ailesinin aksiyon dolu serüveni.", 
+                yil: "2017", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-1-izle/44178"}, 
+                    {ad: "2. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-2-izle/44775"},
+                    {ad: "3. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-3-izle/45249"},
+                     {ad: "4. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-4-izle/45798"},
+                      {ad: "5. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-5-izle/46314"},
+                       {ad: "6. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-6-izle/46854"},
+                        {ad: "7. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-6-izle/46854"},
+                         {ad: "8. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-8-izle/47859"},
+                          {ad: "9. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-9-izle/48318"},
+                           {ad: "10. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-10-izle/48747"},
+                           {ad: "11. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-11-izle/49437"},
+                           {ad: "12. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-12-izle/49908"},
+                           {ad: "13. Bölüm", yt: "https://www.showtv.com.tr/dizi/tum_bolumler/cukur-sezon-1-bolum-13-izle/50433"},
+
+
+                ]
+            },
+            { 
+                id: "d7", 
+                kat: "dizi", 
+                tur: "Dizi Serisi", 
+                baslik: "Selena", 
+                gorsel: "https://i.ytimg.com/vi/RZc9U9zd7wQ/hqdefault.jpg", 
+                ozet: "Anne ve babalarını kaybeden üç küçük kız kardeşin, iyilik meleği Selena ile yaşadığı fantastik maceralar.", 
+                yil: "2006", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://www.atv.com.tr/selena/1-bolum/izle"}, 
+                    {ad: "2. Bölüm", yt: "https://www.atv.com.tr/selena/2-bolum/izle"},
+                    {ad: "3. Bölüm", yt: "https://www.atv.com.tr/selena/3-bolum/izle"},
+                    {ad: "4. Bölüm", yt: "https://www.atv.com.tr/selena/4-bolum/izle"},
+                    {ad: "5. Bölüm", yt: "https://www.atv.com.tr/selena/5-bolum/izle"},
+                    {ad: "6. Bölüm", yt: "https://www.atv.com.tr/selena/6-bolum/izle"},
+                    {ad: "7. Bölüm", yt: "https://www.atv.com.tr/selena/7-bolum/izle"},
+                    {ad: "8. Bölüm", yt: "https://www.atv.com.tr/selena/8-bolum/izle"},
+                    {ad: "9. Bölüm", yt: "https://www.atv.com.tr/selena/9-bolum/izle"},
+                    {ad: "10. Bölüm", yt: "https://www.atv.com.tr/selena/10-bolum/izle"},
+                    {ad: "11. Bölüm", yt: "https://www.atv.com.tr/selena/11-bolum/izle"},
+                    {ad: "12. Bölüm", yt: "https://www.atv.com.tr/selena/12-bolum/izle"},
+                    {ad: "13. Bölüm", yt: "https://www.atv.com.tr/selena/13-bolum/izle"},
+                    {ad: "14. Bölüm", yt: "https://www.atv.com.tr/selena/14-bolum/izle"},
+                     {ad: "15. Bölüm", yt: "https://www.atv.com.tr/selena/15-bolum/izle"},
+                     {ad: "16. Bölüm", yt: "https://www.atv.com.tr/selena/16-bolum/izle"},
+                     {ad: "17. Bölüm", yt: "https://www.atv.com.tr/selena/17-bolum/izle"},
+                     {ad: "18. Bölüm", yt: "https://www.atv.com.tr/selena/18-bolum/izle"},
+                  {ad: "19. Bölüm", yt: "https://www.atv.com.tr/selena/19-bolum/izle"},
+                  {ad: "20. Bölüm", yt: "https://www.atv.com.tr/selena/20-bolum/izle"},
+
+                
+                  
+
+                ]
+            },
+            
+            /* HARİCİ VE YASAL KAYNAKLARDAN GELEN LİNKLER (PUHUTV, STAR TV VB.) */
+            { 
+                id: "d8", 
+                kat: "dizi", 
+                tur: "PuhuTV", 
+                baslik: "Çirkin", 
+                gorsel: "https://i.ytimg.com/vi/yUIZxe7RzXI/hqdefault.jpg", 
+                ozet: "PuhuTV üzerinden yasal ve yüksek kalite Çirkin dizisi bölümleri.", 
+                yil: "2024", 
+                puan: "Tüm Bölümler",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://puhutv.com/cirkin-1-bolum-izle"},
+                    {ad: "2. Bölüm", yt: "https://puhutv.com/cirkin-2-bolum-izle"},
+                    {ad: "3. Bölüm", yt: "https://puhutv.com/cirkin-3-bolum-izle"},
+                    {ad: "4. Bölüm", yt: "https://puhutv.com/cirkin-4-bolum-izle"},
+                    {ad: "5. Bölüm", yt: "https://puhutv.com/cirkin-5-bolum-izle"},
+                    {ad: "6. Bölüm", yt: "https://puhutv.com/cirkin-6-bolum-izle"},
+                    {ad: "7. Bölüm", yt: "https://puhutv.com/cirkin-7-bolum-izle"},
+                    {ad: "8. Bölüm", yt: "https://puhutv.com/cirkin-8-bolum-izle"},
+                    {ad: "9. Bölüm", yt: "https://puhutv.com/cirkin-9-bolum-izle"},
+                    {ad: "10. Bölüm", yt: "https://puhutv.com/cirkin-10-bolum-izle"},
+
+
+                    
+
+
+
+
+                ]
+            },
+            { 
+                id: "d9", 
+                kat: "dizi", 
+                tur: "Star TV (Resmi)", 
+                baslik: "Sefirin Kızı", 
+                gorsel: "https://i.ytimg.com/vi/EhW_A67wNs4/hqdefault.jpg", 
+                ozet: "Star TV'nin kendi resmi sitesinden VadiX Oynatıcısında doğrudan açılır.", 
+                yil: "2019", 
+                puan: "9.1",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://puhutv.com/sefirin-kizi-1-bolum-izle"},
+                    {ad: "2. Bölüm", yt: "https://puhutv.com/sefirin-kizi-2-bolum-izle"},
+                    {ad: "3. Bölüm", yt: "https://puhutv.com/sefirin-kizi-3-bolum-izle"},
+                   {ad: "4. Bölüm", yt: "https://puhutv.com/sefirin-kizi-4-bolum-izle"},
+                   {ad: "5. Bölüm", yt: "https://puhutv.com/sefirin-kizi-5-bolum-izle"},
+                   {ad: "6. Bölüm", yt: "https://puhutv.com/sefirin-kizi-6-bolum-izle"},
+                      {ad: "7. Bölüm", yt: "https://puhutv.com/sefirin-kizi-7-bolum-izle"},
+{ad: "8. Bölüm", yt: "https://puhutv.com/sefirin-kizi-8-bolum-izle"}, 
+                      {ad: "9. Bölüm", yt: "https://puhutv.com/sefirin-kizi-9-bolum-izle"},
+{ad: "10. Bölüm", yt: "https://puhutv.com/sefirin-kizi-10-bolum-izle"},
+{ad: "11. Bölüm", yt: "https://puhutv.com/sefirin-kizi-11-bolum-izle"},
+{ad: "12. Bölüm", yt: "https://puhutv.com/sefirin-kizi-12-bolum-izle"},
+{ad: "13. Bölüm", yt: "https://puhutv.com/sefirin-kizi-13-bolum-izle"},
+{ad: "14. Bölüm", yt: "https://puhutv.com/sefirin-kizi-14-bolum-izle"},
+{ad: "15. Bölüm", yt: "https://puhutv.com/sefirin-kizi-15-bolum-izle"},
+{ad: "16. Bölüm", yt: "https://puhutv.com/sefirin-kizi-16-bolum-izle"},
+{ad: "17. Bölüm", yt: "https://puhutv.com/sefirin-kizi-17-bolum-izle"},
+{ad: "18. Bölüm", yt: "https://puhutv.com/sefirin-kizi-18-bolum-izle"},
+{ad: "19. Bölüm", yt: "https://puhutv.com/sefirin-kizi-19-bolum-izle"},
+{ad: "20. Bölüm", yt: "https://puhutv.com/sefirin-kizi-20-bolum-izle"},
+{ad: "21. Bölüm", yt: "https://puhutv.com/sefirin-kizi-21-bolum-izle"},
+{ad: "22. Bölüm", yt: "https://puhutv.com/sefirin-kizi-22-bolum-izle"},
+{ad: "23. Bölüm", yt: "https://puhutv.com/sefirin-kizi-23-bolum-izle"},
+{ad: "24. Bölüm", yt: "https://puhutv.com/sefirin-kizi-24-bolum-izle"},
+{ad: "25. Bölüm", yt: "https://puhutv.com/sefirin-kizi-25-bolum-izle"},
+{ad: "26. Bölüm", yt: "https://puhutv.com/sefirin-kizi-26-bolum-izle"},
+{ad: "27. Bölüm", yt: "https://puhutv.com/sefirin-kizi-27-bolum-izle"},
+{ad: "28. Bölüm", yt: "https://puhutv.com/sefirin-kizi-28-bolum-izle"},
+{ad: "29. Bölüm", yt: "https://puhutv.com/sefirin-kizi-29-bolum-izle"},
+{ad: "30. Bölüm", yt: "https://puhutv.com/sefirin-kizi-30-bolum-izle"},
+
+
+                             
+
+
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    
+                ]
+            },
+            { 
+                id: "d10", 
+                kat: "dizi", 
+                tur: "PuhuTV", 
+                baslik: "Behzat Ç.", 
+                gorsel: "https://img-puhutv.mncdn.com/media/19-06/24/7x10_behzat-c-1561406236.jpg", 
+                ozet: "Ankara Cinayet Büro Amiri Behzat Ç. ve ekibinin sıradışı maceraları.", 
+                yil: "2010", 
+                puan: "Efsane",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://puhutv.com/behzat-c-1-bolum-izle"},
+                    {ad: "2. Bölüm", yt: "https://puhutv.com/behzat-c-2-bolum-izle"},
+                      {ad: "3. Bölüm", yt: "https://puhutv.com/behzat-c-3-bolum-izle"},
+                      {ad: "4. Bölüm", yt: "https://puhutv.com/behzat-c-4-bolum-izle"},
+                      {ad: "5. Bölüm", yt: "https://puhutv.com/behzat-c-5-bolum-izle"},
+                      {ad: "6. Bölüm", yt: "https://puhutv.com/behzat-c-6-bolum-izle"},
+                      {ad: "7. Bölüm", yt: "https://puhutv.com/behzat-c-7-bolum-izle"},
+                      {ad: "8. Bölüm", yt: "https://puhutv.com/behzat-c-8-bolum-izle"},
+                      {ad: "9. Bölüm", yt: "https://puhutv.com/behzat-c-9-bolum-izle"},
+                      {ad: "10. Bölüm", yt: "https://puhutv.com/behzat-c-10-bolum-izle"},
+
+                      
+
+
+
+                ]
+            },
+            { 
+                id: "d11", 
+                kat: "dizi", 
+                tur: "Kanal D (Resmi)", 
+                baslik: "Uzak Şehir", 
+                gorsel: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIADgALQMBIgACEQEDEQH/xAAaAAACAwEBAAAAAAAAAAAAAAAFBgADBwQC/8QAMhAAAgECBAQEBAUFAAAAAAAAAQIDBBEABRIhBhMxQSJRccFCYYGRFCMzUtEyNHKhsf/EABcBAQEBAQAAAAAAAAAAAAAAAAQDAQL/xAAfEQACAgICAwEAAAAAAAAAAAABAgARAzEhIhITQQT/2gAMAwEAAhEDEQA/AGbNRNzYaCiA/EzmwJ+Ad2PpgrRUdBkQhpqY/rKwnnePxyNYW37d9sXZBCj51mlZKurlKkMYte22pvbBPM44npi6JIrEi3LTXv03XuN9/Y74liCjkzcpY9RqJ1fokqnWFvylGltdgS5sbDft3/yHkcBWMgZAzKGVHMttiukp4vkLPqt5YdxQzWRZUKyGXVszMoW5uL36dNscbZNVcyXf92m8mx/rsDvfunp9MNGXiE9YvmoOEAzSE0dbYVA/RqO9/wBreYwmVsLw1DxSKVdCVYeRGNOXK1hREQEBQAL2uPthP40pWTOeYAAZYlZrefT2GCfpRQQy/Yn8mRjaNGCgrxRVeZkhzeqN9IJ+FcERnj28ED79zhJzSvaHNa+niliRmlLAyMBpNh88EMrzimmonFQyGdLKQWBEm3VQSN+uC+1xwIz04yLO5fTcSxxV2dtJWSS06iMhNZIjJBuFbzO2w8h5nFXC/FVOedl0jOZopZXQyNcNHquCD2Fj0NtsKPCP4d4uJpTqDR2kkZj4RGqMRY+YJ/5gLw2WHG8kzaDAAZJNbWB8JUdfUfbDPEqGN6h+rECtzaI82STcISp6MpuDhb43s8tHKoILRtfp54qNZA8XKp6impjCqojAncA3I9upJ33745eJKnnUmWMCrkRMCRvuDgpyu/DS4wohBWBuI5iue1tzsZCAL2A6b4vlqaSGmrTSrzJbxmmt1Frk+2HZ+G6Grl59TEju25JJ3/3gFmOTtUZoKbK6aClpaf8AuKuZbBjtcL3Nvl3xirZnQcVUzzg7OAuW8SU9WZXWop2SOKNbnW4ILfZVv6Yv4LiJq+bOyuxoFlK3JJQOyk/QgXxo/B/C+Rw5fX10EU4etLK7ubeEN8HbSb7HuLYXKCgXK+KoqLLBJyYMucqzpr5aySrIoJ9NVr77YWx87Hww3C0RsTxJXUqmNojoZUs1yDdr4DVFR+YwDEDUSAT0w1VYpxDKstCsUyuyroTYrc6WH0t9b4CmhjdiVhb53TBKo1Eg2JohzRKCvpYpipE8uhPFuNtz6fzgrVSsVVhNdDuE0dsTEwnHqFyiqiVxZkb5xmHOeacxCMCJAbrG3xEA7WNh9/ljpyijraen5SySygEEM562AGJiYpJ+Rqc/EeYLRUEjZlzWUtoXloGIc9OvTAMM1lenqGMbqGUgDcEYmJiGbcViHW5//9k=", 
+                ozet: "Alya, vefat eden eşinin vasiyetini yerine getirmek için Kanada'dan Mardin'e gelir. Ancak kendisini törelerin ve sırların ortasında bulur.", 
+                yil: "2024", 
+                puan: "Yeni",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-ilk-bolum"}, 
+                    {ad: "2. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-2-bolum"}, 
+                    {ad: "3. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-3-bolum"}, 
+                    {ad: "4. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-4-bolum"}, 
+                    {ad: "5. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-5-bolum"},
+                    {ad: "6. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-6-bolum"},
+                    {ad: "7. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-7-bolum"},
+                     {ad: "8. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-8-bolum"},                    {ad: "8. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-8-bolum"},
+                    {ad: "9. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-9-bolum"},
+                    {ad: "10. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-10-bolum"},
+                    {ad: "11. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-11-bolum"},
+                     {ad: "12. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-12-bolum"},
+                      {ad: "13. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-13-bolum"},
+                     {ad: "14. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-14-bolum"},
+                     {ad: "15. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-15-bolum"},
+                      {ad: "16. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-16-bolum"},
+                       {ad: "17. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-17-bolum"},  
+                        {ad: "18. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-18-bolum"},
+                         {ad: "19. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-19-bolum"},
+                     {ad: "20. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-20-bolum"},
+                       {ad: "21. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-21-bolum"},
+                        {ad: "22. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-22-bolum"},
+                         {ad: "23. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-23-bolum"},
+                         {ad: "24. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-24-bolum"},
+                         {ad: "25. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-25-bolum"},
+                     {ad: "26. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-26-bolum"},
+                       {ad: "27. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-27-bolum"},     
+                      {ad: "28. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-28-bolum"},
+                        {ad: "29. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-29-bolum"},
+                        {ad: "30. Bölüm", yt: "https://www.kanald.com.tr/uzak-sehir/bolumler/uzak-sehir-30-bolum"},
+                        
+                ]
+            },
+           
+           
+            
+          
+
+            /* CANLI YAYINLAR (HABER, EĞLENCE, UZAY) */
+            { 
+                id: "c1", 
+                kat: "canli", 
+                tur: "Haber Canlı", 
+                baslik: "CNN Türk Haber Canlı", 
+                ytId: "6N8_r2uwLEc", 
+                gorsel: "https://i.ytimg.com/vi/6N8_r2uwLEc/hqdefault.jpg", 
+                ozet: "Türkiye'nin resmi haber kanalı CNN Türk ekranlarından 7/24 kesintisiz son dakika gelişmeleri.", 
+                yil: "CANLI", 
+                puan: "HD Yayın" 
+            },
+            { 
+                id: "c2", 
+                kat: "canli", 
+                tur: "Haber Canlı", 
+                baslik: "Habertürk Haber Canlı", 
+                ytId: "RNVNlJSUFoE", 
+                gorsel: "https://i.ytimg.com/vi/RNVNlJSUFoE/hqdefault.jpg", 
+                ozet: "Gündemin nabzı Habertürk TV ile 7/24 canlı yayında.", 
+                yil: "CANLI", 
+                puan: "HD Yayın" 
+            },
+            { 
+                id: "c3", 
+                kat: "canli", 
+                tur: "Haber Canlı", 
+                baslik: "A Haber Canlı", 
+                ytId: "nmY9i63t6qo", 
+                gorsel: "https://i.ytimg.com/vi/nmY9i63t6qo/hqdefault.jpg", 
+                ozet: "Türkiye ve dünyadan sıcak gelişmeler A Haber 7/24 canlı yayınında.", 
+                yil: "CANLI", 
+                puan: "HD Yayın" 
+            },
+            { 
+                id: "c4", 
+                kat: "canli", 
+                tur: "Haber Canlı", 
+                baslik: "TGRT Haber Canlı", 
+                ytId: "0SAUIyvNA5s", 
+                gorsel: "https://i.ytimg.com/vi/0SAUIyvNA5s/hqdefault.jpg", 
+                ozet: "TGRT Haber ile kesintisiz haber akışı.", 
+                yil: "CANLI", 
+                puan: "HD Yayın" 
+            },
+            { 
+                id: "c5", 
+                kat: "canli", 
+                tur: "Haber Canlı", 
+                baslik: "HalkTV Haber Canlı", 
+                ytId: "IPRqmM55-3U", 
+                gorsel: "https://i.ytimg.com/vi/IPRqmM55-3U/hqdefault.jpg", 
+                ozet: "", 
+                yil: "CANLI", 
+                puan: "" 
+            },
+            { 
+                id: "c6", 
+                kat: "canli", 
+                tur: "Eğlence Canlı", 
+                baslik: "Kemal Sunal Filmleri", 
+                ytId: "VkXvDzJyUQs", 
+                gorsel: "https://i.ytimg.com/vi/VkXvDzJyUQs/hqdefault.jpg", 
+                ozet: "Kemal Sunal'ın unutulmaz filmleri ve en komik sahneleri 7/24 aralıksız yayında.", 
+                yil: "CANLI", 
+                puan: "HD Yayın" 
+            },
+            { 
+                id: "c7", 
+                kat: "canli", 
+                tur: "Müzik Canlı", 
+                baslik: "Lofi Girl (Radyo)", 
+                ytId: "jfKfPfyJRdk", 
+                gorsel: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg", 
+                ozet: "Ders çalışırken veya rahatlarken dinleyebileceğin 7/24 chill lofi hip hop müzik yayını.", 
+                yil: "CANLI", 
+                puan: "Müzik" 
+            },
+            { 
+                id: "c8", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "ATV Canlı Yayın", 
+                ytId: "https://www.atv.com.tr/canli-yayin", 
+                gorsel: "https://iatv.tmgrup.com.tr/site/v2/i/atv-logo.png", 
+                ozet: "ATV'nin canlı yayınını kesintisiz izleyin.", 
+                yil: "CANLI", 
+                puan: "" 
+            },
+            { 
+                id: "c9", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "Star TV", 
+                ytId: "https://www.startv.com.tr/canli-yayin", 
+                gorsel: "data:image/webp;base64,UklGRuYEAABXRUJQVlA4INoEAABQGgCdASqUAHcAPulCul0pIqkpFTEgHQliANXyNb4+SyAbAXgWbcm7b95+v3ft6x84wK3eWVpL2eN5ksBInNb+EfS5tSHznu7uXDMm4SweTuYoDXVdQ5Fhoq4iLlcnQrjmTDXRv+bMW8YKs+DXRB99dD00iehIsafylVNaaU8AcbyKc44f1cetiX2/7IbHfKe3I21cT7loS6X3k781kCrwGpVeRSNk9LUz2aNVwc0YX/pRF3hobOMsYcIG4mqqqolw7RDYd6pEC1ERVrgMagxAbWsjMzNJKKN3KAAA/vlYQ1iJFe8nxpRj20cet/EinS8L3If6jLLsgX/9EBafDJEq0FSzNbC3+kseGSvgvKg5cfWHzF2/W+eVceemOozWuoQl7MFvcGkgZZC6+C7aFZnMslQ9SGTwc9mUMx8WFg+YUIonBQJwLNmORLHGoMkWSIDzkkOUh2lc/HeEKYeqKYOfhXWsge++fEdjhaPpKjIoAi1icgLsauez4IDqmnhaexfzzp3QmuZkpeAYU1zax68Awhce8sRompzWMHvG5CtB7oiFAkLSV1XQQv7F3Nu88VGXpsbZETibG56W+7t38ixlw4tTVI3eMvmugCj1N/B9FxAPrk1oRt2OrYwQlMdHxfB/gm9uaKIAXXl8zvvGQ7jafpktzmx93R6omzdTDhBzsE/6sS+9/LHCeBjhm2ebnV7lJ2JZdSyPE46nu10woTYzz2BhJx5RM5kyVp5En9gnThKKDagAg6Cj+tNp8mVUBM+f34MGdAL9M1mkaFY+CjObxvWSRQ3YUUt4ZLZawonQLiJcaV6Os4m+olfRzubaMCKHlxJ4vomBzk1n78WppCGOsBWnGV9YyhIRZQDZPX3Zql5yc396etnLXQy2YRZMBit29n6GXhld5k1ed+5fV+ouhh+aH8tXUEQtH6NZ+Y5jULP4cpVs+u10qTQXKY2tYKb4FUDDU3HeX3axM13lHwJqKaHR4AnVNAccau8MqtlO6keYk0i7hzckNOBQIsPYEwLxJJoJoaH//fIuCaTuEeVq7K6chPChCE+KWzOpNmGMMwXu5T2KK/WvL+aQ92iYRZdMRyDBFrCZAOPZZwJBjh/ryO59IgMWFHK7Svav5/vwTLAfhtzPP6bShFD2xlt0EPcI+90ZDASC8dLYFqGVzlg+BzAr+aJWxwZkKx3sdd32iZXaDvCnGY4B7skXOpoq6Xm/YUbM6OnCvfhmnLd1Ev9EhXwoNHmAcw5eBEhR789Jf1duBkkXh2vBvwPPY4jGIN+ufB18lRkH15CZ/+NL/Bsb4jflF6tK5H1/Z8AgO/GzyXIFv8p4wyyzj7TC9dMCEsVkvpfHolqAEggAEpEihlX4I4yryNJ+FE8B50BWOuLZ5gQ2ndXv1bxzvB+laHMdlUTy8ylMBh/EZI4owDgjbBPEc4kalTWOFqBn30PAu/0I174MaEIPqviZh1X1qav3lIl8V+zGyAUExeNWeUrbylMjaWCl1aMWJrjMOiKNBXDM/QjBvOAqWCx8Ub2Aj8I3vhnQNqL4Lord9PZwxUJRQ0YNUaoIYWu0vUq+ggRzJ9DT2s3mOWLMBfSFWdzvhxYi33OnPYeWNGt9xjESz7ON2vUvAavcTCKqs7XtHP1e15ivy5CykyaBoAAAAAA=", 
+                ozet: "Star TV'nin canlı yayınını kesintisiz izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+           
+
+            /* ÇİZGİ FİLMLER VE ÇOCUK İÇERİKLERİ */
+            { 
+                id: "k1", 
+                kat: "cizgi", 
+                tur: "Çizgi Film Canlı", 
+                baslik: "Minika Çocuk", 
+                ytId: "HHbcUfg_kko", 
+                gorsel: "https://i.ytimg.com/vi/HHbcUfg_kko/hqdefault.jpg", 
+                ozet: "En sevilen minika çocuk çizgi filmleri kesintisiz olarak yayında.", 
+                yil: "CANLI", 
+                puan: "Eğlence" 
+            },
+            { 
+                id: "k2", 
+                kat: "cizgi", 
+                tur: "Çizgi Film Canlı", 
+                baslik: "Cartoon Network", 
+                ytId: "qTjU24F8hrQ", 
+                gorsel: "https://i.ytimg.com/vi/qTjU24F8hrQ/hqdefault.jpg", 
+                ozet: "En sevilen Cartoon Network çizgi filmleri kesintisiz olarak yayında.", 
+                yil: "CANLI", 
+                puan: "Eğlence" 
+            },
+            { 
+                id: "k3", 
+                kat: "cizgi", 
+                tur: "Çizgi Film Canlı", 
+                baslik: "Cartoonito Türkiye", 
+                ytId: "FsRq_t322-g", 
+                gorsel: "https://i.ytimg.com/vi/FsRq_t322-g/hqdefault.jpg", 
+                ozet: "", 
+                yil: "CANLI", 
+                puan: "Güvenli" 
+            },
+            { 
+                id: "c10", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "Show TV", 
+                ytId: "https://www.showtv.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAABVlBMVEVudZJSfqPSjS7r2TuKlnYzkrpqkZTD2j7jwTfeqjk4b6RRwLHSey7kyJRdgYR8bY/EpzeEaot4zK9Rv8Dd7JpEvaC7onqu10Cw2Tyt2ECh1EL/+/T+//+o1UC520GT0UA9ha7X4T4ytkpTXKtuTqgNrcrrqTTy5zzh4z2nykuz2D+euVjjgjNkWqU5brrmkTL+5jun0Uvxvze00T6EzkJ5TJ42tnhlxULM3jwSsNgvtsXvrTkntJLk8+PW7N3YVCTr9fH30DmtuNbq9fwMcMcRsadKZ7BaS6wDmeJXv05nwpSN0EcRsLcJq9wIhdC1xULqnTO03oCY18Tfmy7l7MPfel6W0VXp5T0BjN2APJ54yl11y0eI03i75LL19uSkv8LIcGqFiLn87ennnIqHzGcASrcXZryY2ZOu2mHb7sdYcbnkpXGSmsh9q8zpppFzvufkn3nepKGXTaWgAAAAF3RSTlP+/v7+/v7+/v7+/v7+/v7+/v7+/v7+/rypoQcAAAGiSURBVCiRjdJnU8JAEAbgoEhAsZe7yyUkJJQkdGlKr6IgHcTee/f/f/F0ICKjjvfxntndm72XAn8c6t+IfkdkoQGg1Z8QqeN+vyz7nVZ1FJEapLNZv9PplK2WEUR1R9y4upod7/WsaxbEcEOIgr5Gw0HU2JOttMrwIW4Y3T5fw0SqZVLIMZUDRkMUnBtzEzY1TMQAKQxVOA3N6bSZcLvdXqNVjudD0a1oH1E93X3uvo49uE3TS5bmLd882D8UmQGeshddNn0+fYzxceeuwh4epUS+35ZbYd+In3eww4E7ySY+St5EtddSZ/kc+5JP4XgctzLJVorVZkKXLUewlj/JYJxZTrGJTFLU2iq23KP3SXd2bzhpTVUXFxLlsihyfYSzJYmiPJJOEOzrMft2IhKJbGkzA/r5sM0jGbzCxGZs/UP3tSWQqXsEqQ2Cu9VYdbtY3IFfqAxQqH2WFr92C4DqCtv0HskrTBZqm1NV+yUc/mzIKfqStKGbvC7slncCcCQmMECVJMPMVWFiQN8CBhUXAC4FavYtmggChODQxf9DPXreAbnpbOFzWfoaAAAAAElFTkSuQmCC", 
+                ozet: "Show TV'nin canlı yayınını kesintisiz izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c11", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "Kanal D", 
+                ytId: "https://www.kanald.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAApVBMVEVHcEy1vcS0wMqlo6M4o8E1IITDztmiqK6Zm52eoaV73+53cm21usDb6vevucPL2eWJkZjP3Oaus7jM2OKyuL6nqa2cn6GZnaHCzdjDzdestLyFutYAMGEAi8dM4v8AcqdvzvG1vseHjpSdpay7xM3AytPFz9mgqK+ttb18goittb6ttr4HQmmNk5p7gYcLebMps+qut79M1PuE1vMJYouX+//U//9cEFoQAAAAIXRSTlMAyGlYFQ3F1GN2VCzuVNty4qOrz9Y6x7L1kNHwT6VBqu0tiLrBAAAAjUlEQVQokd3Q1xaCMAyA4SAWqHtvRQSxi+F8/0eT9jbhAfS7/U9ymgL8o4U34/226OWNQUTHztUJycg2mUPV7gm2iYM3996fB9tprYTGo+eqro/RzUpR3JvqGfsXq8BrjXmxdSmlLCfEgw7gF26S47jkq9QZUackQikh7gHRmh+yN+ZjsgEE8+mwJf28L/7ODpvK8OYTAAAAAElFTkSuQmCC", 
+                ozet: "Kanal D'nin canlı yayınını kesintisiz izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c12", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "NOW TV", 
+                ytId: "https://www.nowtv.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAJ1BMVEVHcEzVEhXQEhfUERXUEhXBERXUEhXSERXUERTTERXTERTUEBTUERVzG9sqAAAADXRSTlMA4xutvw7QXowzdEj2tSxEdgAAAJ1JREFUKJHlUMsVwzAIKxbmZ+8/b4WT9pIRooOfQCADn88LMecjM8acfEgyB8lBZylmla9Vnh5A+QEzXklxqWiEoiBbTNEwZeFq0fZWmKmyxoTETITB1bnZ0XFk0oWsgRqXrVA+IjkYsnRj9UBudn7DsdXCFv6y0a7sRMDkHiiyOE1Aol25Ss8d9yo5z2oex/U6wvgd4R8/j/XIvANf0aoFiDKzN8QAAAAASUVORK5CYII=", 
+                ozet: "NOW TV'nin canlı yayınını kesintisiz izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+           
+            { 
+                id: "c15", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "TV8", 
+                ytId: "https://www.tv8.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAQAAAC1+jfqAAABnklEQVR4AS2LM2BlARQFb7e29WLbtj7Wtm3btm3bRrNx6jjpgyZOFU1ucE45M9KxOInvGTch7l1cRXxbQltiRfI70wRrT7N0L1qijaj7kXXhhOnDiSSGhLqU+xbDJLoIibQN/xdCAH746H1VMmEmkeR/FluzCn1CnwYqcMcFZ5y03s81rrJLteSn1j4SMt+/0UOBHQZjsecQx5nOKv6ylfhG03wJ/jqZyQSpMpohOPOSNYzDjw/cJ5bkr+JfvZ7XPOc6x7T34yGPCGUqORwhgsRq8dZqOn+YwgMWcFjRM/1jzhBJOPGIn3ZWfuPFbK2vE85RjrOXy8QQShKSUq0CL3DFhVNsVHRA22AVjqs8u1qWfHUjhOmMYYAqflxiBqMwWK2RiY1f5dkCU6Od4hEMpj/DOc9Z3InkOjdZ1vh6gdDnytMI7DAYzUjVLLzmFhc5xBLuPqWP5Em57c1/STiqpMeBMCarNpv7/8ptC0RXKjXGj/s76pLxxQMvArGyt+73/RqjVLrXLPSsnJD67nnFjbabbS8r0t9VTqBncydrBzMCJWVfnSiAAAAAAElFTkSuQmCC", 
+                ozet: "TV8'in eğlence dolu dünyasını ve yarışmalarını canlı izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c16", 
+                kat: "canli", 
+                tur: "Ekonomi & Haber",   
+                baslik: "Bloomberg HT", 
+                ytId: "https://www.bloomberght.com/tv", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAaVBMVEUAAAAGBgaLi4t9fX2xsbHOzs7MzMy5ubltbW07Ozvn5+epqant7e0XFxfg4OD///+xtLSRk5NTU1Pd3d329vZ9LC1TIyQOFRXDw8NlZWUxNTWEhITAwMB0dHTU1NRgYGAfHx9YWFhCQkLliR4JAAAAiElEQVR4AdXJtQHDQBAEwBXzr5i5/x7N7PvcnnTwBwzTwgfbcc88PwgjL07eU/EqcpBmufeeBVkUqqTpoaqb9itx0tkF0n4wxcQ4KW9sIedMc8khZhKRHvCdV2UGfTKexFy6zs9K0pcSZwYZahMxqU/K2fd9PsSkK+Xd+pXhvUYDX7buYscvOwKPuArbNiMWbwAAAABJRU5ErkJggg==", 
+                ozet: "Piyasanın kalbi Bloomberg HT ile ekonomi haberlerini anlık takip edin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c17", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "NTV", 
+                ytId: "https://www.ntv.com.tr/canli-yayin/ntv", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAV1BMVEVHcEwAiMEAhsUAh8QAh8MKiMAAhsMAhsQAhsMAh8EAhsMAh8L0sTmMmZH+sS7ysDn9siz+syn+tCT8si0Ah8LTqF6soH//syz/tB/9si3+syj/tBv/syeMsdlkAAAAHXRSTlMALFVnYUARnvD/vYQ1TylL/82QvdlbNBhtse21fWNCPTAAAADHSURBVHgBYqAxALBFF0gQwkAABOOG7JLD4f/vvIrhg9M4lHEh1ZcobWzMyZdVNhWWTt3N2VzdhAtQEqrrug134yLFAYEJzoK1iNiRa4DowzLjjxAltOtTQzh8dEYWlPYsICK4vqB7IXquMpo3YjdlVJcASzBFjF3Qz1GXiEr3t8t6DWvQiLpIwd7IraB4obV8zkj6s4iu7xlp14SXICBJLefTUsmYEBEZI7E5oSrPO+77Dj0t397ffrYxxmr1H55kgi+B0QMAAJ09FE3UxBNkAAAAAElFTkSuQmCC", 
+                ozet: "NTV canlı yayın ile en son haberler, analizler ve programlar.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c18", 
+                kat: "canli", 
+                tur: "Haber Canlı",   
+                baslik: "Sözcü TV", 
+                ytId: "https://www.szctv.com.tr/canli-yayin-izle", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAEJklEQVR4AWJwL/ChKx7GFo5aeLRTRvjTUn6LrwvlEgCUlQOwJT0UhOe3zWdzbdu2bds2n23btm2/tW2bvdWpulN715uqHiff6ZOTzFlLbbOHLroBj71bpzxLnF/1otzxMM4Vl+HWqSg8vGWJx3fmvnh8t/3zm2f//Wzg9OZ/GNSGqATcjjGpeRTbHQq9DOki61H0ONzJ3IpHh73w7HQScKYAOF8GEcSFKrcPgZUcEXQlpx0elU7H0yO7xYDHK0Phn5+F1XlVmFB0DP0qzr6lyWUnsKrsELyLylBfnIIb+WF4lOsZwTHfCUwao2pUk2Fw/nzlWIJE1AVlBzE+8CCa+tYrqZ1zuZK6BtbK4vfUPrciJDjF4LDT9qI3ocJZdapWHWF0dO5MjegkLc8UUlmWgGbLovHXpAB82df3LTWcGvuWRs+Mw6qFSXBbEA2fSZY5SsD8VO3lCmdMB6O2jzmEorqLlIj2+xZ7sW5fGgIjKpXEZ3xHrduWgsKyM6g5dAmxidUCuGmEF3wHeyO0m0PCHO3B3wpgaXrTTAJZBMPWRwkY25Vrd3Hn7mOwWdvFi0He1SRpMdw8suT7hw+f8cS+AmjddTcCO29FbNf9NgLIuWMVZq1eLNLHCNlp6sZIGPc2F04I1DJcgu49d6Bl603IyTsCNgbBZ8+evcT5C7d4ze8YgABmRuRjvcliAYzuv/tlVO9FHSXO3831P8BynZUAJmYelCNkigj7+svJ+Flljjiv2+wHthMnrohnZhaRchYkaTB0NKeipc5CAZ/aaa0MTB9vi4hRZpYSF/W9WT+JgXS3ZbIQOG90KqeUQRA2eYqdHAzvCXgHUIaOUZ0rgHSXv9QXucuCUyWPppqbCQxdvB9GW9Kx2rlQLoaRMz04uCJdPDN9DI7umD45CAZIEAPZtzaCNSBSam6ySLgr3RaFhHV+btKSv9XNcjr/hYvj+7D8WZmKASjFXHEulQqDYIpAvlc4Z6rZ+G7vlH0inXRXaZ38PMs2srvkpKk7Y+P/6k8JDRw1i1CmkBFSHIzFQ7cslrdEIJ0ypYSxT0l2HWFK7uq8s81FlXLvJJCK1vhHhlKNJnlCf4wrz4SKNEt6KxWS08rK5Zwp5o0iLHnkLuGuxDLGXmlrY1r3qqmD8lRVRYix6UNGyKUxZE8qxTVK0aksuqMWDzIT2tZrB9edKBIBm2NWz6Xw1l7KXWCNmnqBAkjRbaaRKR2LJbNmVziWWufKYmFxd2GBUNzGWHg5M/bg1KipOD9mwMH3bd6yWLEOGloPXgdWqKjg0vffyTrXoh2u9OnDQWWx4PjsYS8D3O/5360L3f5e/ln/Qx9NHUemlUDqQJOWQoTdbt5W6EGHFko609HoJEH887wa2U0MUPiDUvFDU6smbPiOqVHlXB11f5AjR04jatRCAOmY1hi8bASFAAAAAElFTkSuQmCC", 
+                ozet: "Gündemden en sıcak haberleri Sözcü TV canlı yayınından izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c19", 
+                kat: "canli", 
+                tur: "Haber Canlı",   
+                baslik: "Haber Global", 
+                ytId: "https://haberglobal.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAABG0lEQVR4AWJwL/ChKx6GFo5aOGohj6wj20dV01NAXEUXC4EWJQHxfyCeRLaFWrIOgryyjgDSyZiIYRiGolsphEUJhEUodAqLoOhqDObg3RzCwbOqf/eHf6quGjq8IbLkJzl2Bz7BiZjEm8ZVGCdHDveZzkCtx/YvoS9sjpHGxRh/R6E2RoFlqDTdOGy0KiGnMjKdC/ms7eWEFG3e2bMSMsfIwNHqCeG7EoIlWCE8JefgfofThVYJlVIY/xWP1IT7l7CjELDT6kj32JT8jq7C/y8NnwMuitZLwzMK62dRCGVK5qWM7OHf5AoTTo1nQrmtjbmLTNTpTdWChyykcQpfURjz0Sj4jFplaRS08DajQ+GN8MXwrQ9HLRy1EABYCUgnqzKMLwAAAABJRU5ErkJggg==", 
+                ozet: "Haber Global canlı yayını ile güncel haberler ve analizler.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c20", 
+                kat: "canli", 
+                tur: "Haber Canlı",   
+                baslik: "TV 100", 
+                ytId: "https://www.tv100.com.tr/canli-izle", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAJ1BMVEXxGDRHcEzxGDTxGDTxGDTxGDTxGDTxGDTxGDTxGDTxGDTxGDTxGDTO5MwOAAAADXRSTlO5AAewpI86emROIw8YRnw2rAAAAMZJREFUKJHNkUkSQyEIRJFJUO9/3jD4s0plk03Y2OUTGhDGl4D/gxjR+n1ufKAQkY1xTIjFcazJIbQhA8EcSlAhZ7aYeDNBNe9tMgAvaSHleYAx0rPQjrSZBbcAeHaLYJqyQoBOUQJu6DOSG8az6mUYwCmokg4Vi8CeV+sDbAN/oNt1qmpdNlrDgnPdJsfi6645S0KiGmHh1pjPNYTHTlZDMIy5iAOBeYhcl48eJWpib419XKH3y6Zkg8fNdKdvCvz1s/8MvgDjpAY2sP5PpQAAAABJRU5ErkJggg==", 
+                ozet: "TV 100 canlı yayınını kesintisiz ve yüksek kalitede izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c21", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "360 TV", 
+                ytId: "https://www.tv360.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAkFBMVEVHcEzy9vT8/Pzx8PLr8+r5+frt9e7p4+vq7+r2+Pj0/PX48vn8/vzp6ez7/fzg1ePr7u3k5Obx+PKKAJaZLqaXJqOVIaL8/v2SGp/v7fGDAJCNMJifR6qGIpKRDJ/RvdXbxeDCq8esXba6jcHj1efPrtTa0t3FmMx5BoS3er+RPJx7Loaqa7KZZqGJTZKkhKrNEja7AAAAE3RSTlMAfLzkDac5/CH7R9Fk0oXdkmeVBrcx1QAAAYpJREFUKJGl0tmSqyAQAFCNUWK2WRC6QRb33eT//27QsVLJ3LzdftCiTgHdTXvef0d03Z1Op/B8+JfOQVYWKlFFS8I/vN9lBUuShHE0pif+sx2CnidLMMY4N2jDp31BwTdyxjnS+vrAXY9OVvtVTqvjZsfMuLs4rmTMupcFG54Ux6Ii7aImqwbOTFGLnb9fsqkMUwACSmTYgu0Y1hATEgeupHOLfGruGhrDkliMDEuobuN4b9zRoauQaVlDjsaCnZARMeo01WX85e3UUgYVUJsChIBMxbmzNB1EuOKQsJnAVMF9biBfcHBKLu7YtTnpDLVotMutIY0ehiGdxKfnl0xVFrGHXJAUJ7B5XOpUq0ocvMhiWkFWi/hmIWsFzLqJbZkTsfSfcLw1rtB7p20MouyodiKCr6VD15LS7jaPHaXy90dll0fboxB0SynpEtu3//YenaevIYfg8WSeX7+aIvvnCcqUfJDsL69TFF1ytdwrJU7Z5977E8fwo27b1n74b2bTZX2IjtFbeR8/1E8waHwzQKYAAAAASUVORK5CYII=", 
+                ozet: "360 TV'nin eğlence ve yaşam dolu yayınını canlı izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c22", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "Beyaz TV", 
+                ytId: "http://beyaztv.com.tr/canli-yayin/", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAACDVBMVEX9/f2jh4m7jo9vYGdPOkGBbHTllJNHcEzgwcNlUVpqWWDlh4j++flYUVv7lpWmfH7Eg4WOdXqIiJPgpKTt5uXuzc15eoZDMz3BkpOJd3u7iYqsgYTUjI58a3B3Z22ggIdqWmLIeHWLm6v/rapXRE5SP0lpcYL/sbB1fY7wxMKafH/MjI2DdHmuf4Gtd3nx1db+/f3u6unh1dVxXGPYvr5rVV3Ken3coaD0nZxwe4tfVGF0fY7xlpX23NrykJBgVmD8/v369vb///8/BAk+Ky9nAQRjVVpvXWFDGyMwAANUQ0ceAASerr34traip7BRNDinAACEhZE4QlhddZT4zc358/Xa3OF4ZGlJCREuDBSCJiquZWlmHCJpO0FRAQbedHYtFx+gQENEWXRlc4lxbn0iDBQ8N0dSZICPoK9eZXSIjZozJzTpd3p0hZrriIjw4d+9wMby7fCaaGt7UFSBbXF8Oj5pTk+JY2lfR0uwLjFeDRN2CA7KQkSUGh/PVFhJOUBwjau+xcuQjpO3hYuZnab5NjnOys/5SUr8HB/aAAaWWFyOT1NYDBM3Lju3WV2CAABQR1ySRklefqBUaoyGqctuUl7A1OXMe32wusPOpqnl6uybAAClISiun6b+Awzd0tTtDQ6ljpNTJCi1cnW3VFiKAAvex8hLT2H/X2Ktz+b/a23NLC7jYmTsnZ/dGh1QpdkGAAAAQnRSTlMBdzY3/AccAAsjEkH9/ffszvhmKxxTrnpc4FGU/tLu9kwmhlPBnfSu7cHbg5ew9YWp3e744ODzx5jQrFXWcOvFsuaTCgtKAAACXUlEQVQokW2TZVNbYRCFb4S88ZAEt4G2DFB3bynXiCtxIe6Ouye4a7Ch7r+xN2mgSM/XZ3Z29+xZCDoTOBV0RQDQaWQWiyWkFV2mANCqqouf7nRG3ra8KblYDEDVnbsWy/LyaGcHm/2ulAbOMxIvNb+w5hwY7oBhnZzbdP2MAojE7+vqMZtHVHIYTnIz32OvWacUCPiGXpvVOrQymoSzx9yZWDze0lCglEpDr1JkXMQO0nr9VEYeh2G4rTQPQdHtbpwqQhD70NRE+mQuk2vbIW+i5yig1LZLUJMYsa8dJqYPZn/p4GRs5is3PxOor8PHHFKxeJCvUNjmfh7rspGjmUjsea4UCDz9qNfrENvU08H9H3t6/c7srDz++RmxLCi6ppagPo0X2VK7lSpLIn3y+4jYCH7ckIcyxfi6Rop63Bps5DChcM5FCAY/FBKQWSbblWml3lW/S4T1KRQG1bBex2bDD0oIyGgNyQJhqc/v0hgHJ6fV1v2pvU7C4/s5yGzEPRxH2L/hCiNboRAHMztVqoHhmnvEtAAqH5MoJdFxrcYk8kSDIgxb+TQy8LEmbxFg3KBKJr9tasPiVbfbh9gxbMjstBQL//r3qjkqy25/kfo2tC4TYrQPWnvmP9yCCuaWRQMTk+iSdnx9SYwgxsWehVQxuXAVUM4JcpS9u9ubfqnJIXpv60rxKs7uCcqpVDyUmAiMoSiq7O/q45H+5QSA+pfNAZkap1Il/Xh7980KcCFEdMGLIN5OyNBdWU2+nF1AaWx98qiutoxEpl+JNYCYDAaFwWBC/4s8VPiEc+gPCLWoPgSVtIcAAAAASUVORK5CYII=", 
+                ozet: "Beyaz TV canlı yayınını kesintisiz izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c23", 
+                kat: "canli", 
+                tur: "TV Kanalı Canlı",   
+                baslik: "TV 8.5", 
+                ytId: "https://www.tv8bucuk.com/tv8-5-canli-yayin", 
+                gorsel: "https://www.tv8bucuk.com/s/template/v2/img/tv8bucuk_logo.png", 
+                ozet: "TV 8.5 canlı yayınını, maç özetlerini ve spor programlarını izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            
+            { 
+                id: "c25", 
+                kat: "canli", 
+                tur: "Spor Canlı",   
+                baslik: "beIN Sports Haber", 
+                ytId: "https://www.beinsports.com.tr/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAb1BMVEX////e1ej5+PvHttjMvdzSxeDr5vHn4O7Pwd7WyuO5pM7Br9T18virk8WObrGnjcLaz+Xs5/KKaK6/rNPl3e2fhL3c0udwRpxwR5xvRpxcLY9kN5RpPZebfrqWd7Z9V6WFYqt2T6F/WqZcLY5dLo9B0eK7AAAAl0lEQVR4AWIgAgDKmIoDhoEY5jDzMdP+M9b5pmaQVNWfQ9N2/TBO1Tg3MEx4WIZ1aYZx27fjPGc8dFeNh26+H3Is7+FqW1KN3bl10FIG0F8DuXoy9EPfvwlcSHSOjXOOAyjN0aXU3AgjtQJ1W+fcjXWnO/V4CPZwzsdtS3eyQUGOe9L6vn1EgT1mKKrkorC8FRcoH/s7/ABUIhEWYqxNbAAAAABJRU5ErkJggg==", 
+                ozet: "beIN Sports Haber canlı yayınını ücretsiz izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c26", 
+                kat: "canli", 
+                tur: "Spor Canlı",   
+                baslik: "HT Spor", 
+                ytId: "https://www.haberturk.com/canli-yayin/ht-spor", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAIAAAD9b0jDAAAAo0lEQVR4AWOgNxgFWlpa9WAA4RYXFwPZzs7OFBkaERHxHwwg3G/fvgHZLS0t1DT03bt31DT0MhgAGVQ0FAHo6P2BjyhfX9+nYADhAoMVyAYmrEGW8tdy8t3jEb7FLYSGgILHuAToayj9ASKi7iEBRETRP/ETBgYGBhDjcnJyqBYIwLIOYmh5efkINNTNzQ1iKKgKoBZQUFCoBwNLS8uBSdqjAAAjfNtKxqTm2QAAAABJRU5ErkJggg==", 
+                ozet: "HT Spor canlı yayını ile en güncel spor gelişmeleri.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c27", 
+                kat: "canli", 
+                tur: "Spor Canlı",   
+                baslik: "A Spor", 
+                ytId: "https://www.aspor.com.tr/webtv/canli-yayin", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAA7VBMVEVHcEyKiop1mZY+Tk0ATkwEWFUAZGIDeXXCwsIKnZkgKScATUvV1dWZmZkAWFZWVFS5ubmBfX1UsKwMZGLIyMjExMQWFBS+vr5hammcnp4De3hwcHC+vr6ysrK3ubgAmpPFxcX+/v7Lysr5+PjT09PGxcXa29uxr6/m5+fs7O3e4OC8urrP0NClpqYBY2Dl4eHKzs7Evb4GamcER0X08/O4tLQEk4qgu7rX19cJT0xOwL4Le3UmsazOwcJLcXCErawrV1Xd1NQsYmBviIYroJtMZGOQjo+4ycmWpKNPiIQ0hH5+ycYeXlwALipdfnz2TMO2AAAAIXRSTlMAWfgG5/7mbf1tD23j/bdFrPr+stHJJeTUg47Avp1rsdDdJ1JuAAAB7UlEQVQokV3S6XaiMBgGYERtqTNOq5122jNrFpIQQBaBgCir+1jv/3ImWLfOy58cHt6PhIOinPP8+vDns8zTz3vlv7S+Ec6MAByifeSHGFsxDxACzQXcX9dGdMsilu1RpzFglL1e+zQzhtC1oB3k0/wwN5j9ndwd8avlWpjYKJ9Ohk0xMC7Y7g8Gy2Wf8vl0OpSG2BUqPeV3FKXbjaqqojHmzCZnVHoqLQ30fo7AYQzD6XnsK5HPB+9ocMfh+uqEvSeEDGYYhJRlyQjnJPbECX/I3XHmmma93aqMEGzB2fCILdnjBGtoE0WRIDGGmqnP5/PbwyFBwGJiolUqkWAMPRrq0Txtms8MICOGIcjTKBU8xnpoU5GmadN8QYGjU0od2PXXpSya1A5z3/cb/I41TTPDULMg4S6EsmjPNkdsa/KGZ5qmBy1dh7os2rDy/dFhQy25dV3zNB2aA9pYv493oyPKnwBi+a5wuXhrhoQ0dLtnVNr3rZdFkYyTpEiKoqqq3Ujm9vTh24+JzPgQ+VC3yRmVL2vPy2xKF4vQm9WZ4zjrTxfE9C3zEnPtLce1Uwdjm13hjll7Q/AaZd0E5EYOsgs+qjUQqBgnjCxWaA8qsL9qCiKyVTUaFSvuFpmbCHHV7HQ6N50bmWYhVx2523/QU1+UjDrbUQAAAABJRU5ErkJggg==", 
+                ozet: "A Spor canlı yayınını, maç özetlerini ve transfer haberlerini izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+           
+          
+           
+           
+           
+          
+            { 
+                id: "c34", 
+                kat: "canli", 
+                tur: "Belgesel Canlı",   
+                baslik: "TLC TV", 
+                ytId: "https://www.tlctv.com.tr/canli-izle", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACiklEQVR4Ae2VQ7gbUQCFs64bPptxbdu2bdt2u6ptW5va0aa2NZk7qRHn9OZZQa2c7xveM2f+a15AAQUUEBtZpr8ppPiu1KNEroMEqXcZRYqxbi8XWXo4fefV+1KoHOr2miLKjiHU5+ngJOqdz8XyfjwSpDJzfBm8HSxf5jodpS5iEqucvrwv+VInanfKzwkVLp9egdTMoyR2PwCgC00ScGIVfIa6r427F+QEcn+89j8DgESWwZsxs9KOmXgzOvVgBk3AI740FwAJLY63Y2fjjrKaXwBsTDmY+o7BK5rP1m4HkhOAUdQAy7IghMDpdMJut4NhGFy7dg2rxXG5WyCpMlwuF+Y2b+MTgG3YGVbTa3z69Ckj3zB7EV7wpVlagD5sFMVjmSQOTzR6bN26FVMlMVhGf64XJH0zgDGiFMwsh6NHj6BrkoLmx2N/847omqzE06wAWQPenNNgzZrVuMNP9jwG/ARgOw2CzWZDD2VxmiH1bxC+v6inAGt+DADtd7PZjCVhqVl+A6xd6x2AJFZK6ct5zdt6BXhZqh4cdjsujZ6SmRVSHOR7AZiIUrBZrbh7UQPT0vV4vWIjtLKKeQ7Cp4uWw+Fw4P2R43i7cjMsz17g2phpIJ7GwJX1WzBt2hRPAJm+cTOg0Wig0+lSjsmlK+cJYKTHqR6DcOrECRgMBqxcuRIdVSXwgObnCXCVjvoDogQwfKlXAHcNTgkT3d6U44Ig0etCdJ2fhH3CBJyjPvrtt62E5CtWQuLvSkgk/mxGUtfpIlFFuB+8GdHFyMxjQkv0eyGU73zGl+7ydDwqmjyGR/UytOSw53z5Lm9e2rdD3F5jSImxz4XyXc/pO0/Hg6LJ/XkBBRTQf68vJmpgAptFFkMAAAAASUVORK5CYII=", 
+                ozet: "TLC'nin merak uyandıran programlarını canlı izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+            { 
+                id: "c35", 
+                kat: "canli", 
+                tur: "Belgesel Canlı",   
+                baslik: "DMAX TV", 
+                ytId: "https://www.dmax.com.tr/canli-izle", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAVElEQVR4AWP4b0waYvifBmbNTAOjmSDyzEw4GyKLTMK0njnzHzdAswGmAS8gbAMmwLCBEMC0gTBAs4EwoKsNAx9KpMU0clqCsWbOBOrBRLhSKwkkAFZzQqdFWYDyAAAAAElFTkSuQmCC", 
+                ozet: "DMAX canlı yayını ile maceraya ortak olun.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+          
+          
+            { 
+                id: "c38", 
+                kat: "canli", 
+                tur: "Belgesel Canlı",   
+                baslik: "Yaban TV", 
+                ytId: "https://www.yabantv.com/broadcast", 
+                gorsel: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAgVBMVEX///+pzYxUoQDf7dTx9+tapBJHmwCTwW/1+vBdpBt5sk3+//09lgCLvWWbxXmy0pj3+/TB26vp89651qFmqixPnQBvrjqly4dImgDR5MC/2qmEuVrp8+BSnwjk8NqgyIHL4bnd7M6TwW5srDVnqidMmwB0sEOtz5HX6MigyXk1kwDo1fqMAAABk0lEQVR4AXTMBbbbMBAF0GeSmTPROBYmXw7sf4GNnVNur1gD+EUUJ/ifNBM5/qcoRVXjf6KmxUfX44cBH+OEw9yc8N1I4+c8ZTN250biu5LPR74gEsuRdanxXSdWAIpIazoPMFYm+KE2Uwo4od/BOFWZYOEBDAa7MaNrbcReeaslay06oPgSMANcQyR6WMGCRuTvIEtgilsIizVoHVbAddYDCwlxS9W1UzXOK9o9t8V3iVuG+sbNAhQqTWIWWYLURdc27xO8XYRmC2CjWfVzWt9L5hACh8oDTlATAb4h4QCzMekDBYoGyNt1AGahucMYh8//EebNowb2ShZjdDTkbWQmYibmPMVukUuU83atLvdWyb7c5v62zfLL4ODKulxm2T180T+cte6R3v14wmFjL9VmF2MMV+q5JKrIpH9N2MVsiyRLTxevTlalazQVZeRfHruKs/rObjJbr1Q7T1OblLlrUuwejRzOgUoKgbhpiJkoND0+3HNlegucPybj+zNzOeK7Ymwzonh9fH+n+N1Q4NtIAgCQlyUYxoRKgAAAAABJRU5ErkJggg==", 
+                ozet: "Doğa ve yaban hayatının adresi Yaban TV'yi canlı izleyin.", 
+                yil: "CANLI", 
+                puan: "HD" 
+            },
+
+            /* ÇİZGİ FİLMLER VE ÇOCUK İÇERİKLERİ */
+            { 
+                id: "k1", 
+                kat: "cizgi", 
+                tur: "Çizgi Film Canlı", 
+                baslik: "Minika Çocuk", 
+                ytId: "HHbcUfg_kko", 
+                gorsel: "https://i.ytimg.com/vi/HHbcUfg_kko/hqdefault.jpg", 
+                ozet: "En sevilen minika çocuk çizgi filmleri kesintisiz olarak yayında.", 
+                yil: "CANLI", 
+                puan: "Eğlence" 
+            },
+            { 
+                id: "k2", 
+                kat: "cizgi", 
+                tur: "Çizgi Film Canlı", 
+                baslik: "Cartoon Network", 
+                ytId: "qTjU24F8hrQ", 
+                gorsel: "https://i.ytimg.com/vi/qTjU24F8hrQ/hqdefault.jpg", 
+                ozet: "En sevilen Cartoon Network çizgi filmleri kesintisiz olarak yayında.", 
+                yil: "CANLI", 
+                puan: "Eğlence" 
+            },
+            { 
+                id: "k3", 
+                kat: "cizgi", 
+                tur: "Çizgi Film Canlı", 
+                baslik: "Cartoonito Türkiye", 
+                ytId: "FsRq_t322-g", 
+                gorsel: "https://i.ytimg.com/vi/FsRq_t322-g/hqdefault.jpg", 
+                ozet: "", 
+                yil: "CANLI", 
+                puan: "Güvenli" 
+            },
+            { 
+                id: "k4", 
+                kat: "cizgi", 
+                tur: "Dizi Serisi", 
+                baslik: "Tom ve Jerry", 
+                gorsel: "https://i.ytimg.com/vi/RK8XK9LBkZM/hqdefault.jpg", 
+                ozet: "Keloğlan ve arkadaşlarının masal köyündeki maceraları.", 
+                yil: "Çocuk", 
+                puan: "Eğlence",
+                bolumler: [ 
+                    {ad: "1. Bölüm", yt: "RK8XK9LBkZM"}, 
+                  
+                ]
+            },
+           { 
+                id: "k5", 
+                kat: "cizgi", 
+                tur: "Dizi Serisi", 
+                baslik: "Mucize uğur böceği kara kedi", 
+                gorsel: "https://i.ytimg.com/an_webp/GeI_2OcqUfA/mqdefault_6s.webp?du=3000&sqp=CLDogdAG&rs=AOn4CLDXO4dYP-ekQYWYpCPZOcnoaQ5JpA", 
+                ozet: "Keloğlan ve arkadaşlarının masal köyündeki maceraları.", 
+                yil: "Çocuk", 
+                puan: "Eğlence",
+                bolumler: [ 
+                    {ad: " Bölümler", yt: "StY9fJ6HaZ8"}, 
+                    {ad: " Bölümler", yt: "l6yxSpWnH4k"}, 
+                    {ad: " Bölümler", yt: "2ZaL6DE2y08"},    
+                    {ad: "Bölümler", yt: "6D6rmxK3wp8"},
+                    {ad: "Bölümler", yt: "7sFMuImqd8k"},
+                    {ad: "Bölümler", yt: "r3OMgOsa_sQ"},
+                    {ad: "Bölümler", yt: "xqJ_i8CW-VQ"},
+                    {ad: "Bölümler", yt: "T7ZWNJhq0J"},
+                    {ad: "Bölümler", yt: "mQAS_Pei_eU"},
+                    {ad: "Bölümler", yt: "5Sm6LNBjMW4"},
+                    {ad: "Bölümler", yt: "p4FsJyXCGfI"},
+                    {ad: "Bölümler", yt: "LsLmYc07IdA"},
+                
+
+
+                  
+                ]
+            },
+            { 
+                id: "k6", 
+                kat: "cizgi", 
+                tur: "Animasyon Film", 
+                baslik: "Fındık İşi - 1080p Türkçe dublaj Full Animasyon filmi izle ",
+                ytId: "_S8QbIIOc1U",
+                gorsel: "https://i.ytimg.com/vi/_S8QbIIOc1U/hqdefault.jpg", 
+                ozet: "", 
+                yil: "animasyon", 
+                puan: "Eğlence",
+               
+            },
+             { 
+                id: "k7", 
+                kat: "cizgi", 
+                tur: "Çizgi Film", 
+                baslik: "Arı Maya 2 Bal Oyunları Çizgi Film Türkçe Dublaj Full Tek Parça türkçe çizgi film",
+                ytId: "EA21G7ad2kI",
+                gorsel: "https://i.ytimg.com/vi/EA21G7ad2kI/hqdefault.jpg", 
+                ozet: "", 
+                yil: "animasyon", 
+                puan: "Eğlence",
+               
+            },
+             { 
+                id: "k8", 
+                kat: "cizgi", 
+                tur: "Çizgi Film", 
+                baslik: "Ajan Kedi - Spy Cat | Türkçe Dublaj Animasyon Filmi 4K",
+                ytId: "8frpxaeOeDA",
+                gorsel: "https://i.ytimg.com/vi/8frpxaeOeDA/hqdefault.jpg", 
+                ozet: "", 
+                yil: "animasyon", 
+                puan: "Eğlence",
+               
+            }
+            
+          
+        ];
+
+        // Sayfa ilk yüklendiğinde otomatik olarak "Tümü" filtresini çalıştırır.
+        window.onload = () => filtrele('hepsi', null);
+        
+        // Logoya tıklayınca sayfayı yeniler
+        function sayfaYenile() { location.reload(); }
+
+        // ==========================================================================
+        // İÇERİK FİLTRELEME VE ANA EKRANA DİZME MOTORU
+        // ==========================================================================
+        function filtrele(istenenKategori, btn) {
+            const butonlar = document.querySelectorAll('.nav-menu button');
+            butonlar.forEach(b => b.classList.remove('aktif'));
+            
+            if (btn) {
+                btn.classList.add('aktif');
+            } else {
+                butonlar[0].classList.add('aktif');
+            }
+
+            const anaEkran = document.getElementById('icerikEkrani');
+            anaEkran.innerHTML = ""; 
+
+            const satirlar = [
+                { id: "film", baslik: "Unutulmaz Sinema Filmleri" },
+                { id: "dizi", baslik: "Popüler Dizi Arşivi" },
+                { id: "canli", baslik: "Canlı Haber & Eğlence" },
+                { id: "cizgi", baslik: "Çocuk & Çizgi Film Kanalları" }
+            ];
+
+            satirlar.forEach(satir => {
+                if (istenenKategori !== 'hepsi' && satir.id !== istenenKategori) return;
+
+                const icerikler = veritabani.filter(v => v.kat === satir.id);
+                if (icerikler.length === 0) return;
+
+                let html = `<h2 class="kategori-baslik">${satir.baslik}</h2><div class="grid-satir">`;
+                
+                icerikler.forEach(icerik => {
+                    let etiketClass = icerik.yil === "CANLI" ? "kart-etiket etiket-canli" : "kart-etiket";
+                    
+                    html += `
+                        <div class="film-kart" style="background-image: url('${icerik.gorsel}')" onclick="modalAc('${icerik.id}')">
+                            <div class="kart-golge">
+                                <h3 class="kart-baslik">${icerik.baslik}</h3>
+                                <div class="etiket-kapsayici">
+                                    <span class="${etiketClass}">${icerik.tur}</span>
+                                    <span class="kart-etiket">${icerik.puan}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+                anaEkran.innerHTML += html;
+            });
+        }
+
+        // ==========================================================================
+        // BİLGİ PENCERESİ AÇMA FONKSİYONU
+        // ==========================================================================
+        function modalAc(id) {
+            const film = veritabani.find(v => v.id === id);
+            document.getElementById('modalResim').style.backgroundImage = `url('${film.gorsel}')`;
+            document.getElementById('modalAd').innerText = film.baslik;
+            document.getElementById('modalYil').innerText = film.yil;
+            document.getElementById('modalKategori').innerText = film.tur;
+            document.getElementById('modalPuan').innerText = film.puan;
+            document.getElementById('modalOzet').innerText = film.ozet;
+            
+            // Eğer hata potansiyeli olan bir canlı yayın değilse uyarıyı göster
+            if(film.kat === 'dizi') {
+                document.getElementById('hataUyari').style.display = 'block';
+            } else {
+                document.getElementById('hataUyari').style.display = 'none';
+            }
+
+            const bolumKutusu = document.getElementById('bolumKutusu');
+            const tekliOynatBtn = document.getElementById('modalOynatBtn');
+            
+            bolumKutusu.innerHTML = ''; 
+
+            if(film.bolumler && film.bolumler.length > 0) {
+                tekliOynatBtn.style.display = 'none'; 
+                bolumKutusu.style.display = 'flex';   
+                
+                film.bolumler.forEach(bolum => {
+                    const btn = document.createElement('button');
+                    btn.className = 'bolum-btn';
+                    btn.innerText = bolum.ad;
+                    btn.onclick = () => videoOynat(bolum.yt);
+                    bolumKutusu.appendChild(btn);
+                });
+            } else {
+                tekliOynatBtn.style.display = 'flex'; 
+                bolumKutusu.style.display = 'none';   
+                tekliOynatBtn.onclick = () => videoOynat(film.ytId);
+            }
+            
+            document.getElementById('modal').style.display = "flex";
+        }
+
+        function modalKapat() { 
+            document.getElementById('modal').style.display = "none"; 
+        }
+
+        // ==========================================================================
+        // OYNATICI FONKSİYONU (DİREKT BAŞLATMA - BUTON İPTAL EDİLDİ!)
+        // Bu sistem, her türlü linki bekleme ekranı olmadan direkt açar.
+        // ==========================================================================
+        function videoOynat(gelenVeri) {
+            modalKapat(); // Bilgi penceresini kapat
+            
+            const oynatici = document.getElementById('oynaticiKutusu');
+            const iframe = document.getElementById('videoEkrani');
+            const videoTag = document.getElementById('yerelOynatici');
+            
+            // Tüm oynatıcı alt elementlerini başlangıçta gizle
+            iframe.style.display = "none";
+            videoTag.style.display = "none";
+            
+            // Mevcut verileri sıfırla
+            iframe.src = "";
+            videoTag.src = "";
+            
+            // Ana oynatıcı kutusunu görünür yap
+            oynatici.style.display = "block";
+
+            // DURUM 1: Eğer link .mp4 veya .m3u8 gibi direkt bir dosya uzantısı ise
+            if (gelenVeri.includes('.mp4') || gelenVeri.includes('.m3u8')) {
+                videoTag.style.display = "block";
+                videoTag.src = gelenVeri;
+            } 
+            // DURUM 2: PuhuTV, Star TV gibi herhangi bir HTTP linki ise direkt iframe içinde şak diye başlat!
+            else if (gelenVeri.startsWith('http')) {
+                iframe.style.display = "block";
+                iframe.src = gelenVeri;
+            }
+            // DURUM 3: Gelen veri sadece kısa bir YouTube ID'si ise YouTube olarak başlat
+            else {
+                iframe.style.display = "block";
+                iframe.src = `https://www.youtube.com/embed/${gelenVeri}?autoplay=1`;
+            }
+
+            // Sayfayı yavaşça oynatıcıya kaydır
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================================================
+        // OYNATICI KAPATMA VE TEMİZLEME FONKSİYONU
+        // ==========================================================================
+        function oynaticiKapat() {
+            const oynatici = document.getElementById('oynaticiKutusu');
+            const iframe = document.getElementById('videoEkrani');
+            const videoTag = document.getElementById('yerelOynatici');
+            
+            oynatici.style.display = "none";
+            
+            // Arka planda ses gelmemesi için kaynakları temizle
+            iframe.src = ""; 
+            videoTag.src = "";
+            videoTag.pause(); // Eğer yerel video açıksa oynatmayı durdur
+        }
+
+        // ==========================================================================
+        // TAM EKRAN MODU AÇMA/KAPATMA FONKSİYONU
+        // ==========================================================================
+        function toggleFullscreen() {
+            const playerWrapper = document.getElementById('oynaticiKutusu');
+            if (!document.fullscreenElement) {
+                if (playerWrapper.requestFullscreen) {
+                    playerWrapper.requestFullscreen();
+                } else if (playerWrapper.mozRequestFullScreen) { /* Firefox */
+                    playerWrapper.mozRequestFullScreen();
+                } else if (playerWrapper.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    playerWrapper.webkitRequestFullscreen();
+                } else if (playerWrapper.msRequestFullscreen) { /* IE/Edge */
+                    playerWrapper.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>  
+       
+    
